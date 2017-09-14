@@ -14,10 +14,10 @@ namespace sarwai{
   */
   class LoggingStrategy{
   public:
-    LoggingStrategy();
-    ~LoggingStrategy();
+    virtual LoggingStrategy();
+    virtual ~LoggingStrategy();
     
-    void Log(std::vector<uint8_t>, BoxMetadata boxdata) = 0;
+    virtual void Log(std::vector<uint8_t>, BoxMetadata boxdata) = 0;
   private:
     ImageSaver * imagesaverinstance;
     BoxDataSaver * boxdatasaverinstance;
