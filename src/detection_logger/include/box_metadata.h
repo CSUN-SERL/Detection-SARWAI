@@ -1,11 +1,11 @@
 #ifndef SARWAI_DETECTION-LOGGER_BOX-METADATA_H_
 #define SARWAI_DETECTION-LOGGER_BOX-METADATA_H_
 
-// TODO: Delete this whole file when integrating with the Matt and Aren's part.
-// This will all be contained in the message we get from the rostopic. Silly me
+#include <string>
 
 namespace sarwai{
   struct BoxMetadata{
+    std::string object_class;
     double confidence_rating;
     int timestamp;
     int left_x_coord;
