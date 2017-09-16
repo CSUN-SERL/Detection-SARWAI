@@ -4,7 +4,7 @@
 #include <vector>
 #include "box_metadata.h"
 
-namespace sarwai{
+namespace sarwai {
 
   /**
   *   LoggingStrategy interface, containing one outward facing
@@ -12,15 +12,9 @@ namespace sarwai{
   *   will save the data to files using an ImageSaver
   *   class and a BoxDataSaver class.
   */
-  class LoggingStrategy{
+  class LoggingStrategy {
   public:
-    virtual LoggingStrategy();
-    virtual ~LoggingStrategy();
-    
     virtual void Log(std::vector<uint8_t>, BoxMetadata boxdata) = 0;
-  private:
-    ImageSaver * imagesaverinstance;
-    BoxDataSaver * boxdatasaverinstance;
   };
 
 };
