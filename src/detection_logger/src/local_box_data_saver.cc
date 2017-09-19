@@ -1,7 +1,9 @@
 #include "local_box_data_saver.h"
-#include "sys/stat.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <fstream>
-#include <ostringstream>
+// #include <ostringstream>
+#include <sstream>
 
 namespace sarwai{
 
@@ -14,21 +16,21 @@ namespace sarwai{
   }
 
   void LocalBoxDataSaver::SaveBoxData(const BoxMetadata & boxdata, std::string filename, std::string filepath) {
-    ofstream out((filepath + "/" + filename).c_str(), std::ofstream::app);
+    std::ofstream out((filepath + "/" + filename).c_str(), std::ofstream::app);
     
     if(!out.is_open()) {
-      mkdir((filepath + "/" + filename).c_str());
+      mkdir((filepath + "/" + filename).c_str(), S_IFDIR);
       out.open((filepath+"/"+filename).c_str(), std::ofstream::app);
       if(!out.is_open()) {
         // TODO: error handling
       }
     }
 
-    std::string formattedoutput = FormatOutput(boxdata);
+    std::string formatted_output = FormatOutput(boxdata);
     
     // WARNING: we MIGHT need to make the buffer "formattedOutput.length() + 1"
     // if it doesn't automatically concatenate the null terminator
-    out.write(formattedOutput.c_str(), formattedOutput.length());
+    out.write(formatted_output.c_str(), formatted_output.length());
   }
   
   std::string LocalBoxDataSaver::FormatOutput(const BoxMetadata & boxdata) {

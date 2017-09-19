@@ -1,7 +1,8 @@
-#ifndef SARWAI_DETECTION-LOGGER_LOGGING-STRATEGY_H_
-#define SARWAI_DETECTION-LOGGER_LOGGING-STRATEGY_H_
+#ifndef SARWAI_DETECTION_LOGGER_LOGGING_STRATEGY_H_
+#define SARWAI_DETECTION_LOGGER_LOGGING_STRATEGY_H_
 
 #include <vector>
+#include <stdint.h>
 #include "box_metadata.h"
 
 namespace sarwai {
