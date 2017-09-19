@@ -1,5 +1,5 @@
-#ifndef SARWAI_DETECTION-LOGGER_BOX-METADATA_H_
-#define SARWAI_DETECTION-LOGGER_BOX-METADATA_H_
+#ifndef SARWAI_DETECTIONLOGGER_BOXMETADATA_H_
+#define SARWAI_DETECTIONLOGGER_BOXMETADATA_H_
 
 #include <string>
 
@@ -12,7 +12,7 @@ namespace sarwai{
     int top_y_coord;
     int box_width;
     int box_height;
-  }
+  };
 }
 
 #endif

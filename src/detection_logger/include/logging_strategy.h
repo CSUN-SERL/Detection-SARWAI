@@ -1,11 +1,14 @@
-#ifndef SARWAI_DETECTION-LOGGER_LOGGING-STRATEGY_H_
-#define SARWAI_DETECTION-LOGGER_LOGGING-STRATEGY_H_
+#ifndef SARWAI_DETECTIONLOGGER_LOGGINGSTRATEGY_H_
+#define SARWAI_DETECTIONLOGGER_LOGGINGSTRATEGY_H_
+
+#define INIT_STRATEGY(STRATEGYNAME) public: static std::string Classname() {return #STRATEGYNAME;} static LoggingStrategy * get(){return new STRATEGYNAME;}
 
 #include <vector>
+#include <string>
 #include "box_metadata.h"
 
-namespace sarwai {
 
+namespace sarwai {
   /**
   *   LoggingStrategy interface, containing one outward facing
   *   function [log(Image data, bounding box data)] that
@@ -14,7 +17,7 @@ namespace sarwai {
   */
   class LoggingStrategy {
   public:
-    virtual void Log(std::vector<uint8_t>, BoxMetadata boxdata) = 0;
+    virtual void Log(std::vector<uint8_t> image, BoxMetadata boxdata) = 0;
   };
 
 };
