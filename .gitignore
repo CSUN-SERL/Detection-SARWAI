@@ -3,6 +3,7 @@ devel/
 build/
 bin/
 lib/
+install/
 msg_gen/
 srv_gen/
 msg/*Action.msg
@@ -47,3 +48,7 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
+
+#vscode ignore
+.vscode/c_cpp_properties.json
+.vscode/settings.json

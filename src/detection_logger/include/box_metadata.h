@@ -1,10 +1,10 @@
-#ifndef SARWAI_DETECTIONLOGGER_BOXMETADATA_H_
-#define SARWAI_DETECTIONLOGGER_BOXMETADATA_H_
+#ifndef SARWAI_DETECTION_LOGGER_BOX_METADATA_H_
+#define SARWAI_DETECTION_LOGGER_BOX_METADATA_H_
 
 #include <string>
 
-namespace sarwai{
-  struct BoxMetadata{
+namespace sarwai {
+  struct BoxMetadata {
     std::string object_class;
     double confidence_rating;
     int timestamp;

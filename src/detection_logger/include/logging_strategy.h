@@ -1,10 +1,10 @@
-#ifndef SARWAI_DETECTIONLOGGER_LOGGINGSTRATEGY_H_
-#define SARWAI_DETECTIONLOGGER_LOGGINGSTRATEGY_H_
+#ifndef SARWAI_DETECTION_LOGGER_LOGGING_STRATEGY_H_
+#define SARWAI_DETECTION_LOGGER_LOGGING_STRATEGY_H_
 
 #define INIT_STRATEGY(STRATEGYNAME) public: static std::string Classname() {return #STRATEGYNAME;} static LoggingStrategy * get(){return new STRATEGYNAME;}
 
 #include <vector>
-#include <string>
+#include <stdint.h>
 #include "box_metadata.h"
 
 
