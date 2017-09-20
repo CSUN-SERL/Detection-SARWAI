@@ -2,12 +2,12 @@
 #include "logging_strategy_registry.h"
 #include <fstream>
 #include <sys/stat.h>
-#include <stringstream>
+#include <sstream>
 #include <ctime>
 #include <dirent.h>
 
-namespace sarwai{
-
+namespace sarwai {
+  
   void LocalLoggingStrategy::Log(std::vector<uint8_t> image, BoxMetadata boxdata) {
     int filenum = 1;
     std::stringstream imagepath;

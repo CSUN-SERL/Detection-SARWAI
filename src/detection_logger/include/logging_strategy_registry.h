@@ -1,17 +1,17 @@
-#ifndef SARWAI_DETECTIONLOGGER_LOGGINGSTRATEGYREGISTRY_H_
-#define SARWAI_DETECTIONLOGGER_LOGGINGSTRATEGYREGISTRY_H_
+#ifndef SARWAI_DETECTION_LOGGER_LOGGING_STRATEGY_REGISTRY_H_
+#define SARWAI_DETECTION_LOGGER_LOGGING_STRATEGY_REGISTRY_H_
 
 #define REGISTER_STRATEGY(STRATEGYNAME) bool reg##STRATEGYNAME = LoggingStrategyRegistry::Instance->Add(STRATEGYNAME::Classname(), &STRATEGYNAME::get());
 
 #include <string>
-#include <function>
+#include <functional>
 #include <unordered_map>
 #include <memory>
 #include "logging_strategy.h"
 
-namespace sarwai{
+namespace sarwai {
 
-  class LoggingStrategyRegistry{
+  class LoggingStrategyRegistry {
   public:
     bool Add(std::string strategyname, LoggingStrategy * (*strategygetter)());
     static LoggingStrategyRegistry * Instance() {return instance.get()};
