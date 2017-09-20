@@ -17,7 +17,7 @@ namespace sarwai {
   */
   class LoggingStrategy {
   public:
-    virtual void Log(std::vector<uint8_t> image, BoxMetadata boxdata) = 0;
+    virtual void Log(std::vector<int8_t> image, BoxMetadata boxdata) = 0;
   };
 
 };

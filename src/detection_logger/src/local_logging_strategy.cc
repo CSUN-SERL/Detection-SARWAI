@@ -8,13 +8,14 @@
 
 namespace sarwai {
   
-  void LocalLoggingStrategy::Log(std::vector<uint8_t> image, BoxMetadata boxdata) {
+  void LocalLoggingStrategy::Log(std::vector<int8_t> image, BoxMetadata boxdata) {
     int filenum = 1;
     std::stringstream imagepath;
     std::stringstream textpath;
-    struct tm * date = localtime(&(time(0));
+    time_t currtime = time(0);
+    struct tm * date = localtime( &currtime );
     textpath << "/" << (date->tm_year + 1900) << "/" << (date->tm_mon + 1) << "/" << date->tm_mday;
-    imagepath = textpath;
+    imagepath << textpath.str();
     // imagepath << "/image/";
 
     struct stat info;
@@ -25,8 +26,8 @@ namespace sarwai {
       // in an unmade directory
       textpath << "/text/output_1.txt";
       imagepath << "/image/image_1.png";
-      mkdir(textpath.str().c_str());
-      mkdir(imagepath.str().c_str());
+      mkdir(textpath.str().c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+      mkdir(imagepath.str().c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     }
     else {
       // in a made directory
@@ -44,7 +45,7 @@ namespace sarwai {
       ++filenum;
       textpath << "/text/output_" << filenum << ".txt";
       closedir(dir);
-      mkdir(textpath.str().c_str());
+      mkdir(textpath.str().c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
       
       filenum = 1;
       dir = opendir(imagepath.str().c_str());
@@ -57,12 +58,12 @@ namespace sarwai {
       ++filenum;
       imagepath << "/image/image_" << filenum << ".png";
       closedir(dir);
-      mkdir(imagepath.str().c_str());
+      mkdir(imagepath.str().c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     }
 
-    ofstream textout(textpath.str(), std::ofstream::app);
-    ofstream imageout(imagepath.str(), std::ofstream::out);
-    if(!(textout.is_open() && imageout.is_open)){
+    std::ofstream textout(textpath.str(), std::ofstream::app);
+    std::ofstream imageout(imagepath.str(), std::ofstream::out);
+    if(!(textout.is_open() && imageout.is_open())){
       // TODO: Error handling
     }
 

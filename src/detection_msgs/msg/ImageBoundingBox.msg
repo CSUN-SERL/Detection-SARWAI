@@ -1,7 +1,7 @@
 #The message sent from the YOLO image generator to the visual detection topic
 std_msgs/Header header
 # byte array of raw image
-int8[] image 
+int8[] image
 string detected_class
 # percentile rating of detection confidence
 float32 confidence 
