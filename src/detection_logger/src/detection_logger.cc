@@ -1,4 +1,5 @@
 #include "detection_logger.h"
+#include "logging_strategy_registry.h"
 #include <stdint.h>
 
 namespace sarwai {
@@ -11,6 +12,10 @@ namespace sarwai {
     topic_name_ = topic_name;
     nh_ = new ros::NodeHandle();
     sub_ = nh_->subscribe(topic_name_.c_str(), 1000, &DetectionLogger::LogCallback, this);
+  }
+
+  DetectionLogger::~DetectionLogger() {
+    // empty
   }
   
   void DetectionLogger::InitLogEntryStruct(const detection_msgs::ImageBoundingBox::ConstPtr &msg,
