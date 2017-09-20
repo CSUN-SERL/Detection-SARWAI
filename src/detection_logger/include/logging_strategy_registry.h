@@ -13,12 +13,12 @@ namespace sarwai{
 
   class LoggingStrategyRegistry{
   public:
-    bool Add(std::string strategyname, SaverBase * (*strategygetter)());
-    static SaverRegistry * Instance();
-    LoggingStrategy * get(std::String name);
+    bool Add(std::string strategyname, LoggingStrategy * (*strategygetter)());
+    static LoggingStrategyRegistry * Instance() {return instance.get()};
+    LoggingStrategy * Get(std::string name);
   private:
-    std::unordered_map<std::string, std::function<LoggingStrategy*()>>;
-    static std::unique_ptr<LoggingStrategyRegistry> instance;
+    std::unordered_map<std::string, std::function<LoggingStrategy*()>> strategy_map_;
+    static std::unique_ptr<LoggingStrategyRegistry> instance = std::unique_ptr<LoggingStrategyRegistry>(new LoggingStrategyRegistry);
   }
 
 }
