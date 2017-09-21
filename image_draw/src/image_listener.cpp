@@ -7,11 +7,11 @@
 #include <std_msgs/Int8.h>
 #include <vector>
 #include <queue>
+#include <string>
 #include <stdio.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <sstream>
-
+#include <boost/lexical_cast.hpp>
 
 std::vector<int> information;
 
@@ -84,23 +84,23 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) //Video CAll Back Func
 /**************************************************************************************************************/
 
 
-
+//Subscribes to yolo Video image
 void array_recived(const darknet_ros_msgs::BoundingBoxes& msg){
 
     
 
     for(int i=0; i<msg.boundingBoxes.size(); i++){
-        if(msg.boundingBoxes[i].Class == "person"){
+        if(msg.boundingBoxes[i].Class == "person"){  //Filters people only
                   
-            information.push_back(msg.boundingBoxes[i].xmin);
-            information.push_back(msg.boundingBoxes[i].ymin);
-            information.push_back(msg.boundingBoxes[i].xmax);
-            information.push_back(msg.boundingBoxes[i].ymax);
+            information.push_back(msg.boundingBoxes[i].xmin);   //xmin is pushed to vector
+            information.push_back(msg.boundingBoxes[i].ymin);   //ymin is pushed to vector
+            information.push_back(msg.boundingBoxes[i].xmax);   //xmin is pushed to vector
+            information.push_back(msg.boundingBoxes[i].ymax);   //xmax i pushed to vector
 
-            cordinates.push(information); // Queue
+            cordinates.push(information); // Vector of information is pushed into corinates QUEUE
         }
 
-        information.clear();
+        information.clear();  //Vector is cleared after each iteration 
         
     }
     
@@ -111,10 +111,10 @@ void array_recived(const darknet_ros_msgs::BoundingBoxes& msg){
 /*******************************************************************************************************************/
 
 
-
+//Subscribes to YOLO object_deteted
 void object_detected(const std_msgs::Int8& msg){
     
-    check.push(msg.data);
+    check.push(msg.data);   //Sequence of 0s and 1s are inserted into check QUEUE
 
 
 }
@@ -138,19 +138,10 @@ void run_image_process(){
                 cordinates.pop();
 
              }
+        std::string s = std::to_string(count++);
+        cv::imwrite( s + ".jpg", vid.front());
 
         }
-
-      try
-      {
-        cv::imshow("view", vid.front());
-        cv::waitKey(30);
-      }
-      catch (cv_bridge::Exception& e)
-      {
-        ROS_ERROR("Could not convert from  to 'bgr8'.");
-      }
-
 
 
 
@@ -163,57 +154,6 @@ void run_image_process(){
 
 
 }
-
-
-
-/*
-
-
-
-
-
-
-      try
-      {
-        cv::imshow("view", vid.front());
-        cv::waitKey(30);
-      }
-      catch (cv_bridge::Exception& e)
-      {
-        ROS_ERROR("Could not convert from  to 'bgr8'.");
-      }
-
-
-
-
-
-
-
-        ROS_INFO_STREAM("CHECKKKK"<<check.size());
-        ROS_INFO_STREAM("VIDDDDD"<<vid.size());
-        ROS_INFO_STREAM("CORDDDDD"<<cordinates.size());
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
 
 
 
