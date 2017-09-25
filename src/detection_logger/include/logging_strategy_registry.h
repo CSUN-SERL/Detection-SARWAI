@@ -36,7 +36,7 @@ namespace sarwai {
     */
     static std::unique_ptr<LoggingStrategyRegistry> Instance;
   private:
-    LoggingStrategy();
+    LoggingStrategyRegistry() = default;
     std::unordered_map<std::string, std::function<LoggingStrategy*()>> strategy_map_;
   };
 

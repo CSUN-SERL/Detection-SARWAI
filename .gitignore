@@ -57,3 +57,5 @@ CATKIN_IGNORE
 .vscode/settings.json
 
 src/detection_logger/\.vscode/
+
+src/darknet_ros/darknet/

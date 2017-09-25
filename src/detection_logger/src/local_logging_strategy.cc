@@ -8,7 +8,7 @@
 
 namespace sarwai {
   
-  void LocalLoggingStrategy::Log(std::vector<int8_t> image, BoxMetadata boxdata) {
+  void LocalLoggingStrategy::Log(std::vector<uint8_t> image, BoxMetadata boxdata) {
     int filenum = 1;
     std::stringstream imagepath;
     std::stringstream textpath;

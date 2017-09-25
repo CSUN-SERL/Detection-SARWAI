@@ -30,7 +30,7 @@ namespace sarwai {
     *   @param image int8_t vector containing the pixel data of the image.
     *   @param boxdata Metadata of the bounding box in the image.
     */
-    virtual void Log(std::vector<int8_t> image, BoxMetadata boxdata) = 0;
+    virtual void Log(std::vector<uint8_t> image, BoxMetadata boxdata) = 0;
   };
 
 };

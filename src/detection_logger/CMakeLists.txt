@@ -19,7 +19,6 @@ include_directories(
 set(
   detection_logger_SOURCES
   src/detection_logger.cc
-  src/local_box_data_saver.cc
   src/logging_strategy_registry.cc
   src/local_logging_strategy.cc
 )
