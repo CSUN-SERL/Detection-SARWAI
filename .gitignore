@@ -1,3 +1,6 @@
+#Ignore very large YOLO weight files (they are hundreds of MBs)
+src/darknet_ros/darknet_ros/yolo_network_config/weights/*.weights
+
 .catkin_workspace
 devel/
 build/
