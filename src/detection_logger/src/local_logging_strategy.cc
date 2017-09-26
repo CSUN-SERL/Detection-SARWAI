@@ -29,7 +29,7 @@ namespace sarwai {
     else if(!(info.st_mode & S_IFDIR)) {
       // in an unmade directory
       textpath << "/text/output_1.txt";
-      imagepath << "/image/image_1.png";
+      imagepath << "/image/image_1.jpg";
       mkdir(textpath.str().c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
       mkdir(imagepath.str().c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     }
@@ -60,7 +60,7 @@ namespace sarwai {
         }
       }
       ++filenum;
-      imagepath << "/image/image_" << filenum << ".png";
+      imagepath << "/image/image_" << filenum << ".jpg";
       closedir(dir);
       mkdir(imagepath.str().c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     }
