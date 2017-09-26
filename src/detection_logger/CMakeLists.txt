@@ -7,9 +7,12 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   detection_msgs
+  cv_bridge
 )
 
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS roscpp detection_msgs cv_bridge
+)
 
 include_directories(
   include
@@ -21,6 +24,7 @@ set(
   src/detection_logger.cc
   src/logging_strategy_registry.cc
   src/local_logging_strategy.cc
+
 )
 
 ## Create executables and linker dependencies

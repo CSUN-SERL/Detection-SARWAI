@@ -1,5 +1,6 @@
 #include "local_logging_strategy.h"
 #include "logging_strategy_registry.h"
+#include "ros/ros.h"
 #include <fstream>
 #include <sys/stat.h>
 #include <sstream>
@@ -65,7 +66,7 @@ namespace sarwai {
     }
 
     std::ofstream textout(textpath.str(), std::ofstream::app);
-    if(!(textout.is_open()){
+    if(!(textout.is_open())){
       // TODO: Error handling
     }
 
@@ -78,8 +79,7 @@ namespace sarwai {
       ROS_ERROR("CV_Bridge Excepion: %s", e.what());
       return;
     }
-        
-    imagepath << imagename;
+    
     cv::imwrite(imagepath.str(), img->image);
 
     // output text
