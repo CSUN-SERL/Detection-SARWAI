@@ -4,7 +4,7 @@
 #include "ros/ros.h"
 #include "box_metadata.h"
 #include "logging_strategy.h"
-#include "detection_msgs/ImageBoundingBox.h"
+#include "detection_msgs/ProcessedVisualDetection.h"
 #include <string>
 
 namespace sarwai {
@@ -22,8 +22,8 @@ namespace sarwai {
   
     LoggingStrategy* logging_strategy_;
 
-    void InitLogEntryStruct(const detection_msgs::ImageBoundingBox::ConstPtr &msg, struct BoxMetadata &log_entry_struct);
-    void LogCallback(const detection_msgs::ImageBoundingBox::ConstPtr &msg);
+    void InitLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg, struct BoxMetadata &log_entry_struct);
+    void LogCallback(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg);
   };
 
 };

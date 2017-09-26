@@ -17,24 +17,25 @@ namespace sarwai {
     LoggingStrategyRegistry::Instance->Get("LocalLoggingStrategy");
   }
   
-  void DetectionLogger::InitLogEntryStruct(const detection_msgs::ImageBoundingBox::ConstPtr &msg,
+  void DetectionLogger::InitLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg,
     struct BoxMetadata &log_entry) {
     
-    log_entry.box_height = msg->box_height;
-    log_entry.box_width = msg->box_width;
-    log_entry.left_x_coord = msg->box_x_coord;
-    log_entry.top_y_coord = msg->box_y_coord;
-    log_entry.timestamp = (int) msg->header.stamp.sec;
-    log_entry.confidence_rating = msg->confidence;
-    log_entry.object_class = msg->detected_class;
+    log_entry.box_height = msg->bounding_box.ymax - msg->bounding_box.ymin;
+    log_entry.box_width = msg->bounding_box.xmax - msg->bounding_box.xmin;
+    log_entry.left_x_coord = msg->bounding_box.xmin;
+    log_entry.top_y_coord = msg->bounding_box.ymin;
+    log_entry.timestamp = (int) msg->image.header.stamp.sec;
+    log_entry.confidence_rating = msg->bounding_box.probability;
+    log_entry.object_class = msg->bounding_box.Class;
   }
 
   void DetectionLogger::LogCallback(
-    const detection_msgs::ImageBoundingBox::ConstPtr& msg) {
+    const detection_msgs::ProcessedVisualDetection::ConstPtr& msg) {
 
     struct BoxMetadata log_entry;
     InitLogEntryStruct(msg, log_entry);
-    this->logging_strategy_->Log(msg->image, log_entry);
+    sensor_msgs::Image image = msg->image;
+    this->logging_strategy_->Log(image, log_entry);
   }
 
   DetectionLogger::~DetectionLogger() {
