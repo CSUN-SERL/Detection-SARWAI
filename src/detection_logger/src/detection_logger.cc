@@ -1,5 +1,6 @@
 #include "detection_logger.h"
 #include "logging_strategy_registry.h"
+#include "local_logging_strategy.h"
 #include <stdint.h>
 
 namespace sarwai {
@@ -14,7 +15,7 @@ namespace sarwai {
     sub_ = nh_->subscribe(topic_name_.c_str(), 1000, &DetectionLogger::LogCallback, this);
     
     // temp, until we get a finalized way of choosing the strategy
-    LoggingStrategyRegistry::Instance->Get("LocalLoggingStrategy");
+    logging_strategy_ = new LocalLoggingStrategy;
   }
   
   void DetectionLogger::InitLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg,
@@ -40,5 +41,6 @@ namespace sarwai {
 
   DetectionLogger::~DetectionLogger() {
     delete nh_;
+    delete logging_strategy_;
   }
 };
