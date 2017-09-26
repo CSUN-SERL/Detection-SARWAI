@@ -3,12 +3,13 @@
 
 #include <string>
 #include <vector>
+#include <sensor_msgs/Image.h>
 
 namespace sarwai {
 
     class ImageSaver {
     public:
-        std::string SaveImage(std::vector<int8_t> image) = 0;
+        std::string SaveImage(sensor_msgs::Image& image) = 0;
     private:
 
     };

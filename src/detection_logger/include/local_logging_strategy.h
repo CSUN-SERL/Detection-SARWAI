@@ -12,7 +12,7 @@ namespace sarwai {
     */
     INIT_STRATEGY(LocalLoggingStrategy)
   public:
-    void Log(std::vector<uint8_t> image, BoxMetadata boxdata) override;
+    void Log(sensor_msgs::Image& image, BoxMetadata boxdata) override;
   private:
     /**
     *   Find the number of the last file saved.

@@ -7,7 +7,7 @@ namespace sarwai {
 
     class LocalImageSaver: public ImageSaver {
     public:
-        std::string SaveImage(std::vector<int8_t> image) override;
+        std::string SaveImage(sensor_msgs::Image& image) override;
     private:
 
     };

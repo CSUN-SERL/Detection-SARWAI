@@ -5,10 +5,13 @@
 #include <sstream>
 #include <ctime>
 #include <dirent.h>
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/opencv.hpp>
 
 namespace sarwai {
   
-  void LocalLoggingStrategy::Log(std::vector<uint8_t> image, BoxMetadata boxdata) {
+  void LocalLoggingStrategy::Log(sensor_msgs::Image& image, BoxMetadata boxdata) {
+    /**/
     int filenum = 1;
     std::stringstream imagepath;
     std::stringstream textpath;
@@ -62,21 +65,28 @@ namespace sarwai {
     }
 
     std::ofstream textout(textpath.str(), std::ofstream::app);
-    std::ofstream imageout(imagepath.str(), std::ofstream::out);
-    if(!(textout.is_open() && imageout.is_open())){
+    if(!(textout.is_open()){
       // TODO: Error handling
     }
 
     // output image
+    cv_bridge::CvImagePtr img;
 
-    for(unsigned i = 0; i < image.size(); ++i) {
-      imageout << image[i];
+    try {
+      img = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
+    } catch (cv_bridge::Exception& e) {
+      ROS_ERROR("CV_Bridge Excepion: %s", e.what());
+      return;
     }
+        
+    imagepath << imagename;
+    cv::imwrite(imagepath.str(), img->image);
 
     // output text
     std::ostringstream formattedstring;
     formattedstring << "class:" << boxdata.object_class << ";confidence:" << boxdata.confidence_rating << ";timestamp:" << boxdata.timestamp << ";x-coord:" << boxdata.left_x_coord << ";y-coord:" << boxdata.top_y_coord << ";width:" << boxdata.box_width << ";height:" << boxdata.box_height << "imagefilename:" << "image_" << filenum << ".png,";
     textout << formattedstring.str();
+    /**/
     
   }
 
