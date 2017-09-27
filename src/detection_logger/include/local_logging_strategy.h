@@ -19,6 +19,7 @@ namespace sarwai {
     *   Used to find what the next file's numerical suffix should be.
     */
     int GetFileNumber(const char * filename) const;
+    bool IsImageFile(const char * filename) const;
   };
 
 }
