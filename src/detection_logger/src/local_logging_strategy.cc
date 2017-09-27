@@ -104,7 +104,14 @@ namespace sarwai {
         while(filename[index] != '\0') {
           index++;
         }
-        return (int)(filename[index - 5] - '0'); // ".txt" is 4 characters, 5 back is number
+        int ret = 0;
+        int mult = 1;
+        index -= 5; // ".jpg" is 4 characters, 5 back is the first filenum character
+        do{
+          ret += (int)(filename[index--]) * mult;
+          mult *= 10;
+        } while (isdigit(filename[index]));
+        return ret;
   }
 
   bool LocalLoggingStrategy::IsImageFile(const char * filename) const {
