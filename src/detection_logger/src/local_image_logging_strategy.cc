@@ -108,7 +108,7 @@ namespace sarwai {
         int mult = 1;
         index -= 5; // ".jpg" is 4 characters, 5 back is the first filenum character
         do{
-          ret += (int)(filename[index--]) * mult;
+          ret += (int)(filename[index--] - '0') * mult;
           mult *= 10;
         } while (isdigit(filename[index]));
         return ret;
