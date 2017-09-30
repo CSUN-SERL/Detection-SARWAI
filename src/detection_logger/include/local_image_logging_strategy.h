@@ -1,4 +1,4 @@
-#include "logging_strategy.h"
+#include "image_logging_strategy.h"
 
 namespace sarwai {
 
@@ -6,11 +6,11 @@ namespace sarwai {
   *   Implementation of the LoggingStrategy class.
   *   Logs the image and bounding box metadata to a filepath on the local filesystem.
   */
-  class LocalLoggingStrategy: public LoggingStrategy {
+  class LocalImageLoggingStrategy: public ImageLoggingStrategy {
     /**
     *   Initialize this strategy as a LoggingStrategy instance.
     */
-    INIT_STRATEGY(LocalLoggingStrategy)
+    INIT_STRATEGY(LocalImageLoggingStrategy)
   public:
     void Log(sensor_msgs::Image& image, BoxMetadata boxdata) override;
   private:

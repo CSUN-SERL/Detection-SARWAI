@@ -3,7 +3,7 @@
 
 #include "ros/ros.h"
 #include "box_metadata.h"
-#include "logging_strategy.h"
+#include "image_logging_strategy.h"
 #include "detection_msgs/ProcessedVisualDetection.h"
 #include <string>
 
@@ -11,19 +11,23 @@ namespace sarwai {
   class DetectionLogger {
   public:
     DetectionLogger();
-    DetectionLogger(std::string topic_name);
+    DetectionLogger(std::string image_topic_name, std::string audio_topic_name, ros::NodeHandle &nh);
     ~DetectionLogger();
 
   private:
-    int msg_queue_limit_;
-    std::string topic_name_;
+    int msg_queue_limit_; // currently not being used, do we need it?
+    std::string image_topic_name_;
+    std::string audio_topic_name_;
     ros::NodeHandle* nh_;
-    ros::Subscriber sub_;
+    ros::Subscriber image_sub_;
+    ros::Subscriber audio_sub_;
   
-    LoggingStrategy* logging_strategy_;
+    ImageLoggingStrategy* visual_logging_strategy_;
+    // AudioLoggingStrategy* audio_logging_strategy;
 
     void InitLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg, struct BoxMetadata &log_entry_struct);
-    void LogCallback(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg);
+    void ImageLogCallback(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg);
+    // void AudioLogCallback(const detection_msgs::ProcessedAudioDetection::ConstPtr &msg);
   };
 
 };

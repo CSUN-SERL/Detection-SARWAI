@@ -1,4 +1,4 @@
-#include "local_logging_strategy.h"
+#include "local_image_logging_strategy.h"
 #include "logging_strategy_registry.h"
 #include "ros/ros.h"
 #include <fstream>
@@ -13,7 +13,7 @@
 
 namespace sarwai {
   
-  void LocalLoggingStrategy::Log(sensor_msgs::Image& image, BoxMetadata boxdata) {
+  void LocalImageLoggingStrategy::Log(sensor_msgs::Image& image, BoxMetadata boxdata) {
     /**/
     int filenum = 1;
     std::stringstream imagepath;
@@ -99,7 +99,7 @@ namespace sarwai {
     
   }
 
-  int LocalLoggingStrategy::GetFileNumber(const char * filename) const {
+  int LocalImageLoggingStrategy::GetFileNumber(const char * filename) const {
         unsigned index = 0;
         while(filename[index] != '\0') {
           index++;
@@ -114,7 +114,7 @@ namespace sarwai {
         return ret;
   }
 
-  bool LocalLoggingStrategy::IsImageFile(const char * filename) const {
+  bool LocalImageLoggingStrategy::IsImageFile(const char * filename) const {
     // Absolutely gross implementation, but we'll probably make it better later.
     if(filename[0] == '.') {
       return false;
@@ -122,5 +122,5 @@ namespace sarwai {
     return true;
   }
   
-  REGISTER_STRATEGY(LocalLoggingStrategy)
+  REGISTER_STRATEGY(LocalImageLoggingStrategy)
 }

@@ -24,7 +24,7 @@ set(
   detection_logger_SOURCES
   src/detection_logger.cc
   src/logging_strategy_registry.cc
-  src/local_logging_strategy.cc
+  src/local_image_logging_strategy.cc
 
 )
 

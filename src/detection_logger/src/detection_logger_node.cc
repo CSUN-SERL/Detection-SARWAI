@@ -6,8 +6,10 @@
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "visual_logger");
-  std::string str = "visual_detection";
-  sarwai::DetectionLogger logger(str);
+  ros::NodeHandle nh;
+  std::string visual_topic_name = "visual_detection";
+  std::string audio_topic_name = "audio_detection";
+  sarwai::DetectionLogger logger(visual_topic_name, audio_topic_name, nh);
   //sarwai::DetectionLogger logger_test();
   ros::spin();
 }

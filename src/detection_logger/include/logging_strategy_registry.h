@@ -7,7 +7,7 @@
 #include <functional>
 #include <unordered_map>
 #include <memory>
-#include "logging_strategy.h"
+#include "image_logging_strategy.h"
 
 namespace sarwai {
 
@@ -24,12 +24,12 @@ namespace sarwai {
     *   Add a strategy to the registry. Should ONLY be called using the
     *   REGISTER_STRATEGY macro.
     */
-    bool Add(std::string strategyname, LoggingStrategy * (*strategygetter)());
+    bool Add(std::string strategyname, ImageLoggingStrategy * (*strategygetter)());
 
     /**
     *   Get the singleton instance of the LoggingStrategyRegistry.
     */
-    LoggingStrategy * Get(std::string name);
+    ImageLoggingStrategy * Get(std::string name);
 
     /**
     *   The singleton instance of the LoggingStrategyRegistry.
@@ -37,7 +37,7 @@ namespace sarwai {
     static std::unique_ptr<LoggingStrategyRegistry> Instance;
   private:
     LoggingStrategyRegistry() = default;
-    std::unordered_map<std::string, std::function<LoggingStrategy*()>> strategy_map_;
+    std::unordered_map<std::string, std::function<ImageLoggingStrategy*()>> strategy_map_;
   };
 
 }

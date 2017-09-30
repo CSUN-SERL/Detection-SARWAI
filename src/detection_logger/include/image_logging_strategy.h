@@ -1,7 +1,7 @@
 #ifndef SARWAI_DETECTION_LOGGER_LOGGING_STRATEGY_H_
 #define SARWAI_DETECTION_LOGGER_LOGGING_STRATEGY_H_
 
-#define INIT_STRATEGY(STRATEGYNAME) public: static std::string Classname() {return #STRATEGYNAME;} static LoggingStrategy * Get(){return new STRATEGYNAME;}
+#define INIT_STRATEGY(STRATEGYNAME) public: static std::string Classname() {return #STRATEGYNAME;} static ImageLoggingStrategy * Get(){return new STRATEGYNAME;}
 
 #include <vector>
 #include <stdint.h>
@@ -23,7 +23,7 @@ namespace sarwai {
   *   functions should ONLY be used in the REGISTER_STRATEGY macro in
   *   LoggingStrategyRegistry.
   */
-  class LoggingStrategy {
+  class ImageLoggingStrategy {
   public:
 
     /**

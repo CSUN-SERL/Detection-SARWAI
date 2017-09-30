@@ -1,6 +1,6 @@
 #include "detection_logger.h"
 #include "logging_strategy_registry.h"
-#include "local_logging_strategy.h"
+#include "local_image_logging_strategy.h"
 #include <stdint.h>
 
 namespace sarwai {
@@ -9,13 +9,15 @@ namespace sarwai {
     //empty
   }
 
-  DetectionLogger::DetectionLogger(std::string topic_name) {  
-    topic_name_ = topic_name;
-    nh_ = new ros::NodeHandle();
-    sub_ = nh_->subscribe(topic_name_.c_str(), 1000, &DetectionLogger::LogCallback, this);
+  DetectionLogger::DetectionLogger(std::string image_topic_name, std::string audio_topic_name, ros::NodeHandle &nh) {  
+    image_topic_name_ = image_topic_name;
+    audio_topic_name_ = audio_topic_name;
+    nh_ = &nh;
+    image_sub_ = nh_->subscribe(image_topic_name_.c_str(), 1000, &DetectionLogger::ImageLogCallback, this);
+    // audio_sub_ = nh_->subscribe(audio_topic_name_.c_str(), 1000, &DetectionLogger::AudioLogCallback, this);
     
     // temp, until we get a finalized way of choosing the strategy
-    logging_strategy_ = new LocalLoggingStrategy;
+    visual_logging_strategy_ = new LocalImageLoggingStrategy;
   }
   
   void DetectionLogger::InitLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg,
@@ -30,17 +32,16 @@ namespace sarwai {
     log_entry.object_class = msg->bounding_box.Class;
   }
 
-  void DetectionLogger::LogCallback(
+  void DetectionLogger::ImageLogCallback(
     const detection_msgs::ProcessedVisualDetection::ConstPtr& msg) {
 
     struct BoxMetadata log_entry;
     InitLogEntryStruct(msg, log_entry);
     sensor_msgs::Image image = msg->image;
-    this->logging_strategy_->Log(image, log_entry);
+    this->visual_logging_strategy_->Log(image, log_entry);
   }
 
   DetectionLogger::~DetectionLogger() {
-    delete nh_;
-    delete logging_strategy_;
+    delete visual_logging_strategy_;
   }
 };
