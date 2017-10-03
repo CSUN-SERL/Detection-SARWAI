@@ -10,7 +10,7 @@ namespace sarwai {
     /**
     *   Initialize this strategy as a LoggingStrategy instance.
     */
-    INIT_STRATEGY(LocalImageLoggingStrategy)
+    INIT_IMAGE_STRATEGY(LocalImageLoggingStrategy)
   public:
     void Log(sensor_msgs::Image& image, BoxMetadata boxdata) override;
   private:

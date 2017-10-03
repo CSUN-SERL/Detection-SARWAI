@@ -1,15 +1,15 @@
-#ifndef SARWAI_DETECTION_LOGGER_LOGGING_STRATEGY_H_
-#define SARWAI_DETECTION_LOGGER_LOGGING_STRATEGY_H_
-
-#define INIT_STRATEGY(STRATEGYNAME) public: static std::string Classname() {return #STRATEGYNAME;} static ImageLoggingStrategy * Get(){return new STRATEGYNAME;}
+#ifndef SARWAI_DETECTION_LOGGER_IMAGE_LOGGING_STRATEGY_H_
+#define SARWAI_DETECTION_LOGGER_IMAGE_LOGGING_STRATEGY_H_
 
 #include <vector>
 #include <stdint.h>
 #include <sensor_msgs/Image.h>
 #include "box_metadata.h"
 
-
 namespace sarwai {
+
+  #define INIT_IMAGE_STRATEGY(STRATEGYNAME) public: static std::string Classname() {return #STRATEGYNAME;} static ImageLoggingStrategy * Get(){return new STRATEGYNAME;}
+
   /**
   *   LoggingStrategy interface, containing one outward facing
   *   function [Log(Image data, bounding box data)] that
