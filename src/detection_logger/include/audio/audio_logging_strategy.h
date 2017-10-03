@@ -1,7 +1,7 @@
 #ifndef SARWAI_DETECTION_LOGGER_AUDIO_LOGGING_STRATEGY_H_
 #define SARWAI_DETECTION_LOGGER_AUDIO_LOGGING_STRATEGY_H_
 
-
+#include "audio_metadata.h"
 
 namespace sarwai {
 
@@ -9,7 +9,7 @@ namespace sarwai {
 
     class AudioLoggingStrategy {
     public:
-        // virtual void Log(sensor_msgs::Image& image, BoxMetadata boxdata) = 0;
+        // virtual void Log(Audio data stream type, AudioMetadata boxdata) = 0;
     };
 }
 
