@@ -4,6 +4,7 @@
 #include "ros/ros.h"
 #include "box_metadata.h"
 #include "image_logging_strategy.h"
+#include "audio_logging_strategy.h"
 #include "detection_msgs/ProcessedVisualDetection.h"
 #include <string>
 
@@ -23,7 +24,7 @@ namespace sarwai {
     ros::Subscriber audio_sub_;
   
     ImageLoggingStrategy* visual_logging_strategy_;
-    // AudioLoggingStrategy* audio_logging_strategy;
+    AudioLoggingStrategy* audio_logging_strategy;
 
     void InitLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg, struct BoxMetadata &log_entry_struct);
     void ImageLogCallback(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg);
