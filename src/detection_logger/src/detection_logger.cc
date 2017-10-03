@@ -41,6 +41,12 @@ namespace sarwai {
     this->visual_logging_strategy_->Log(image, log_entry);
   }
 
+  /*
+  void DetectionLogger::AudioLogCallback(const detection_msgs::ProcessedAudioDetection::ConstPtr &msg) {
+    // TODO: implementation
+  }
+  */
+
   DetectionLogger::~DetectionLogger() {
     delete visual_logging_strategy_;
   }
