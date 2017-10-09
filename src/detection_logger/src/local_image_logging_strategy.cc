@@ -73,7 +73,13 @@ namespace sarwai {
       return;
     }
 
-    textout.open(textpath.str(), std::ofstream::app);
+    // If we wanted to, here is where we would
+    // open file to write optional header as specified in
+    // https://tools.ietf.org/html/rfc4180
+    // textout.open(...)
+
+    // Open csv file for log writing
+    textout.open(textpath.str(), std::ofstream::app); 
     if(!(textout.is_open())){
       ROS_INFO("textout aint open");
     }
@@ -93,7 +99,16 @@ namespace sarwai {
 
     // output text
     std::ostringstream formattedstring;
-    formattedstring << "class:" << boxdata.object_class << ";confidence:" << boxdata.confidence_rating << ";timestamp:" << boxdata.timestamp << ";x-coord:" << boxdata.left_x_coord << ";y-coord:" << boxdata.top_y_coord << ";width:" << boxdata.box_width << ";height:" << boxdata.box_height << "imagefilename:" << "image_" << filenum << ".jpg,";
+    formattedstring <<
+    boxdata.object_class << "," <<
+    boxdata.confidence_rating << "," <<
+    boxdata.timestamp << "," <<
+    boxdata.left_x_coord << "," <<
+    boxdata.top_y_coord << "," <<
+    boxdata.box_width << "," <<
+    boxdata.box_height << "," <<
+    "image_" << filenum << ".jpg" <<
+    "\n";
     textout << formattedstring.str();
     /**/
     

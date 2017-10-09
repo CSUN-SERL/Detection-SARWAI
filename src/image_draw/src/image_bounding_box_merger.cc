@@ -18,7 +18,6 @@ namespace sarwai {
     //Publishes to visual_detection topic
       this->visual_detection_pub_ = this->nh_->advertise<detection_msgs::ProcessedVisualDetection>(
         "visual_detection", 1000); 
-        ROS_INFO("constructor\n");
   }
   
   ImageBoundingBoxMerger::~ImageBoundingBoxMerger() {
@@ -103,7 +102,8 @@ namespace sarwai {
    
     sensor_msgs::ImagePtr image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image_matrix).toImageMsg();
     image_copy = *image_msg;
-    //Publishes the images along with bounding box information
+    //reassigns header value as the transition to cv and back drops the header data.
+    image_copy.header = image.header;
     PublishMergedData(image_copy, box);
   }
 }
