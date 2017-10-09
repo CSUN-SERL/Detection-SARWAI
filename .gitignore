@@ -60,3 +60,5 @@ CATKIN_IGNORE
 src/detection_logger/\.vscode/
 
 #src/darknet_ros/darknet/
+
+*.png
