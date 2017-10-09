@@ -25,7 +25,7 @@ namespace sarwai {
   }
   
   void ImageBoundingBoxMerger::PublishMergedData(
-    sensor_msgs::Image image, darknet_ros_msgs::BoundingBox box
+      sensor_msgs::Image image, darknet_ros_msgs::BoundingBox box
   ) {
     detection_msgs::ProcessedVisualDetection outgoing_msg;
     //Set image info to custom message detection_msgs::ProcessedVisualDetection
@@ -35,7 +35,8 @@ namespace sarwai {
     //Publishes to topic
     this->visual_detection_pub_.publish(outgoing_msg);  
   }
-    //Recives images from topic
+
+  //Recives images from topic
   void ImageBoundingBoxMerger::ImageCallback(const sensor_msgs::ImageConstPtr& msg) {  
     //IMage is pushes into queue 
     this->video_image_frames_.push(*msg);   
@@ -66,11 +67,13 @@ namespace sarwai {
       }
     }
   }
-    //gets data from topic and pushes into detection_flag queue
+
+  //gets data from topic and pushes into detection_flag queue
   void ImageBoundingBoxMerger::ObjectDetected(const std_msgs::Int8& msg) { 
     this->detection_flag_.push(msg.data); //pushes data to queue
   }
-    // gets bounding box data from the top and pushes into bounding_box queue
+
+  // gets bounding box data from the top and pushes into bounding_box queue
   void ImageBoundingBoxMerger::ArrayReceived(const darknet_ros_msgs::BoundingBoxes& msg) {  
     std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = msg.boundingBoxes;
     for (int i = 0; i < bounding_boxes.size(); ++i) {
@@ -82,9 +85,10 @@ namespace sarwai {
     //Push bounding box to bounding_box queue
     this->bounding_boxes_.push(bounding_boxes);   
   }
-    // Function draws box around the detected image
+
+  // Function draws box around the detected image
   void ImageBoundingBoxMerger::DrawRectAndPublishImage( 
-    const darknet_ros_msgs::BoundingBox &box, const sensor_msgs::Image &image
+      const darknet_ros_msgs::BoundingBox &box, const sensor_msgs::Image &image
   ) {
     // Create a value copy of the image
     sensor_msgs::Image image_copy = image;
@@ -106,4 +110,5 @@ namespace sarwai {
     image_copy.header = image.header;
     PublishMergedData(image_copy, box);
   }
+  
 }
