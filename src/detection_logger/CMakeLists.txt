@@ -17,6 +17,8 @@ catkin_package(
 
 include_directories(
   include
+  include/audio
+  include/visual
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -24,7 +26,7 @@ set(
   detection_logger_SOURCES
   src/detection_logger.cc
   src/logging_strategy_registry.cc
-  src/local_image_logging_strategy.cc
+  src/visual/local_image_logging_strategy.cc
 
 )
 
