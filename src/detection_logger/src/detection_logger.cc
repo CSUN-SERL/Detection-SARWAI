@@ -1,6 +1,7 @@
 #include "detection_logger.h"
 #include "logging_strategy_registry.h"
 #include "local_image_logging_strategy.h"
+#include "local_audio_logging_strategy.h"
 #include <stdint.h>
 
 namespace sarwai {
@@ -18,6 +19,13 @@ namespace sarwai {
     
     // temp, until we get a finalized way of choosing the strategy
     visual_logging_strategy_ = new LocalImageLoggingStrategy;
+    audio_logging_strategy_ = new LocalAudioLoggingStrategy;
+  }
+
+
+  DetectionLogger::~DetectionLogger() {
+    delete visual_logging_strategy_;
+    delete audio_logging_strategy_;
   }
   
   void DetectionLogger::InitLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg,
@@ -46,8 +54,4 @@ namespace sarwai {
     // TODO: implementation
   }
   */
-
-  DetectionLogger::~DetectionLogger() {
-    delete visual_logging_strategy_;
-  }
 };

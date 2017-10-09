@@ -24,7 +24,7 @@ namespace sarwai {
     ros::Subscriber audio_sub_;
   
     ImageLoggingStrategy* visual_logging_strategy_;
-    AudioLoggingStrategy* audio_logging_strategy;
+    AudioLoggingStrategy* audio_logging_strategy_;
 
     void InitLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg, struct BoxMetadata &log_entry_struct);
     void ImageLogCallback(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg);
