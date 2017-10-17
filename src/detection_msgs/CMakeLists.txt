@@ -21,7 +21,6 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    ProcessedVisualDetection.msg
    DetectionPointCloud.msg
-   DetectionPointImage.msg
    PointCloudImage.msg
  )
 
