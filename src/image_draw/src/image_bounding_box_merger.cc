@@ -7,18 +7,21 @@ namespace sarwai {
   ImageBoundingBoxMerger::ImageBoundingBoxMerger() {
     //Subscribes to darknet_ros/detection_image
     this->nh_ = new ros::NodeHandle();
+
     this->image_frame_sub_ = this->nh_->subscribe(
-      "darknet_ros/detection_image", 1, &ImageBoundingBoxMerger::ImageCallback, this); 
+      "darknet_ros/detection_image", 1, &ImageBoundingBoxMerger::ImageCallback, this);
+
     //subscribes to darknet_ros/bounding_boxes    
     this->bounding_box_sub_ = this->nh_->subscribe(
-      "darknet_ros/bounding_boxes", 1000, &ImageBoundingBoxMerger::ArrayReceived, this); 
+      "darknet_ros/bounding_boxes", 1000, &ImageBoundingBoxMerger::ArrayReceived, this);
+
     //subscribes to darknet_ros/found_object
     this->detection_flag_sub_ = this->nh_->subscribe(
-      "darknet_ros/found_object", 1000, &ImageBoundingBoxMerger::ObjectDetected, this); 
+      "darknet_ros/found_object", 1000, &ImageBoundingBoxMerger::ObjectDetected, this);
+
     //Publishes to visual_detection topic
       this->visual_detection_pub_ = this->nh_->advertise<detection_msgs::ProcessedVisualDetection>(
-        "visual_detection", 1000); 
-        ROS_INFO("constructor\n");
+        "visual_detection", 1000);
   }
   
   ImageBoundingBoxMerger::~ImageBoundingBoxMerger() {
