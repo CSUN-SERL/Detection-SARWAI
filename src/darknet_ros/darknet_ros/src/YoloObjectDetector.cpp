@@ -8,6 +8,7 @@
 
 // yolo object detector
 #include "darknet_ros/YoloObjectDetector.h"
+#include "pointcloud_image_conversions.h"
 
 // Check for xServer
 #include <X11/Xlib.h>
@@ -141,7 +142,9 @@ void YoloObjectDetector::init() {
 
   // Initialize publisher and subscriber.
   std::string cameraTopicName;
+  std::string pointCloudTopicName;
   int cameraQueueSize;
+  int pointCloudQueueSize;
   std::string objectDetectorTopicName;
   int objectDetectorQueueSize;
   bool objectDetectorLatch;
@@ -149,11 +152,16 @@ void YoloObjectDetector::init() {
   int boundingBoxesQueueSize;
   bool boundingBoxesLatch;
   std::string detectionImageTopicName;
+  std::string pointCloudImageTopicName;
   int detectionImageQueueSize;
+  int detectionPointCloudQueueSize;
   bool detectionImageLatch;
+  bool detectionPointCloudLatch;
 
   nodeHandle_.param("subscribers/camera_reading/topic", cameraTopicName, std::string("/camera/image_raw")); /**********************************************/
+  nodeHandle_.param("subscribers/pointcloud_reading/pointcloud_topic", pointCloudTopicName, std::string("/stereo/points2"));
   nodeHandle_.param("subscribers/camera_reading/queue_size", cameraQueueSize, 1);
+  nodeHandle_.param("subscribers/pointcloud_reading/queue_size", pointCloudQueueSize, 1000);
   nodeHandle_.param("publishers/object_detector/topic", objectDetectorTopicName, std::string("found_object"));
   nodeHandle_.param("publishers/object_detector/queue_size", objectDetectorQueueSize, 1);
   nodeHandle_.param("publishers/object_detector/latch", objectDetectorLatch, false);
@@ -161,13 +169,18 @@ void YoloObjectDetector::init() {
   nodeHandle_.param("publishers/bounding_boxes/queue_size", boundingBoxesQueueSize, 1);
   nodeHandle_.param("publishers/bounding_boxes/latch", boundingBoxesLatch, false);
   nodeHandle_.param("publishers/detection_image/topic", detectionImageTopicName, std::string("detection_image"));
+  nodeHandle_.param("publishers/pointcloud_image/topic", pointCloudImageTopicName, std::string("pointcloud_detection_image"));
   nodeHandle_.param("publishers/detection_image/queue_size", detectionImageQueueSize, 1);
+  nodeHandle_.param("publishers/pointcloud_image/queue_size", detectionPointCloudQueueSize, 1000);
   nodeHandle_.param("publishers/detection_image/latch", detectionImageLatch, true);
+  nodeHandle_.param("publishers/pointcloud_image/latch", detectionPointCloudLatch, true);
 
   imageSubscriber_ = imageTransport_.subscribe(cameraTopicName, cameraQueueSize, &YoloObjectDetector::cameraCallback,this);    //*********************************************************
+  pointcloudSubscriber_ = nodeHandle_.subscribe(pointCloudTopicName, pointCloudQueueSize, &YoloObjectDetector::pointcloudCallback, this);
   objectPublisher_ = nodeHandle_.advertise<std_msgs::Int8>(objectDetectorTopicName, objectDetectorQueueSize, objectDetectorLatch);
   boundingBoxesPublisher_ = nodeHandle_.advertise<darknet_ros_msgs::BoundingBoxes>(boundingBoxesTopicName, boundingBoxesQueueSize, boundingBoxesLatch);
   detectionImagePublisher_ = nodeHandle_.advertise<sensor_msgs::Image>(detectionImageTopicName, detectionImageQueueSize, detectionImageLatch);
+  detectionPointCloudPublisher_  = nodeHandle_.advertise<detection_msgs::PointCloudImage>(pointCloudImageTopicName, detectionPointCloudQueueSize, detectionPointCloudLatch);
 
   // Action servers.
   std::string checkForObjectsActionName;
@@ -297,10 +310,83 @@ void YoloObjectDetector::runYolo(cv::Mat &fullFrame, int id) {
   if (!publishDetectionImage(inputFrame_empty)) ROS_DEBUG("Detection image has not been broadcasted.");
 }
 
+void YoloObjectDetector::runPointCloudYolo(cv::Mat& fullFrame, const sensor_msgs::PointCloud2& cloud, int id) {
+  if(enableConsoleOutput_) {
+    ROS_INFO("[YoloObjectDetector] runYolo().");
+  }
+
+  cv::Mat inputFrame = fullFrame.clone();
+  cv::Mat inputFrame_empty = fullFrame.clone(); // Cloning live video to publish without bounding boxes
+
+  // run yolo and get bounding boxes for objects
+  boxes_ = demo_yolo();
+
+  // get the number of bounding boxes found
+  int num = boxes_[0].num;
+
+  // if at least one BoundingBox found, draw box
+  if (num > 0  && num <= 100) {
+    if(!darknetImageViewer_ && enableConsoleOutput_) {
+      std::cout << "# Objects: " << num << std::endl;
+    }
+    // split bounding boxes by class
+    for (int i = 0; i < num; i++) {
+      for (int j = 0; j < numClasses_; j++) {
+         if (boxes_[i].Class == j) {
+            rosBoxes_[j].push_back(boxes_[i]);
+            rosBoxCounter_[j]++;
+            if(!darknetImageViewer_ && enableConsoleOutput_) {
+              std::cout << classLabels_[boxes_[i].Class] << " (" << boxes_[i].prob*100 << "%)" << std::endl;
+            }
+         }
+      }
+    }
+
+    // send message that an object has been detected
+    std_msgs::Int8 msg;
+    msg.data = 1;
+    objectPublisher_.publish(msg);
+
+    for (int i = 0; i < numClasses_; i++) {
+      if (rosBoxCounter_[i] > 0) drawBoxes(inputFrame, rosBoxes_[i],
+                                             rosBoxCounter_[i], rosBoxColors_[i], classLabels_[i]);
+    }
+    boundingBoxesPublisher_.publish(boundingBoxesResults_);
+  }
+  else {
+    std_msgs::Int8 msg;
+    msg.data = 0;
+    objectPublisher_.publish(msg);
+  }
+  if (isCheckingForObjects()) {
+    ROS_DEBUG("[YoloObjectDetector] check for objects in image.");
+    darknet_ros_msgs::CheckForObjectsResult objectsActionResult;
+    objectsActionResult.id = id;
+    objectsActionResult.boundingBoxes = boundingBoxesResults_;
+    checkForObjectsActionServer_->setSucceeded(objectsActionResult,"Send bounding boxes.");
+  }
+  boundingBoxesResults_.boundingBoxes.clear();
+
+  for (int i = 0; i < numClasses_; i++) {
+     rosBoxes_[i].clear();
+     rosBoxCounter_[i] = 0;
+  }
+
+  if(viewImage_ && !darknetImageViewer_) {
+    cv::imshow(opencvWindow_, inputFrame); //inputFrame
+    cv::waitKey(waitKeyDelay_);
+  }
+
+  // Publish elevation change map.
+  if (!publishDetectionImageWithPC(inputFrame_empty, cloud)) ROS_DEBUG("Detection image has not been broadcasted.");
+}
+
 void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg) {
   if(enableConsoleOutput_) {
     ROS_INFO("[YoloObjectDetector] USB image received.");
   }
+
+  //sensor_msgs::Image cloudImage = sarwai::pc_conversions::extractImageFromPointCloud2(*msg);
 
   cv_bridge::CvImagePtr cam_image;
 
@@ -317,6 +403,32 @@ void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg) {
     frameWidth_ = cam_image->image.size().width;
     frameHeight_ = cam_image->image.size().height;
     runYolo(cam_image->image);
+  }
+  return;
+}
+
+void YoloObjectDetector::pointcloudCallback(const sensor_msgs::PointCloud2ConstPtr& msg) {
+  if(enableConsoleOutput_) {
+    ROS_INFO("[YoloObjectDetector] Pointcloud image received.");
+  }
+
+  sensor_msgs::Image cloudImage = sarwai::pc_conversions::extractImageFromPointCloud2(*msg);
+
+  cv_bridge::CvImagePtr cam_image;
+
+  try {
+    cam_image = cv_bridge::toCvCopy(cloudImage, cloudImage.encoding.c_str());
+  }
+  catch (cv_bridge::Exception& e) {
+    ROS_ERROR("cv_bridge exception: %s", e.what());
+    return;
+  }
+
+  if(cam_image) {
+    camImageCopy_ = cam_image->image.clone();
+    frameWidth_ = cam_image->image.size().width;
+    frameHeight_ = cam_image->image.size().height;
+    runPointCloudYolo(cam_image->image, *msg);
   }
   return;
 }
@@ -367,6 +479,26 @@ bool YoloObjectDetector::publishDetectionImage(const cv::Mat& detectionImage) {
   cvImage.encoding = sensor_msgs::image_encodings::BGR8;
   cvImage.image    = detectionImage;
   detectionImagePublisher_.publish(*cvImage.toImageMsg());
+  ROS_DEBUG("Detection image has been published.");
+  return true;
+}
+
+bool YoloObjectDetector::publishDetectionImageWithPC(const cv::Mat& detectionImage, const sensor_msgs::PointCloud2& cloud) {
+  if (detectionPointCloudPublisher_.getNumSubscribers() < 1) return false;
+  cv_bridge::CvImage cvImage;
+  cvImage.header.stamp = ros::Time::now();
+  cvImage.header.frame_id = "detection_image";
+  cvImage.encoding = sensor_msgs::image_encodings::BGR8;
+  cvImage.image    = detectionImage;
+
+  sensor_msgs::Image finalImage = *cvImage.toImageMsg();
+  finalImage.header = cloud.header;
+
+  detection_msgs::PointCloudImage outmsg;
+  outmsg.image = finalImage;
+  outmsg.cloud = cloud;
+
+  detectionPointCloudPublisher_.publish(outmsg);
   ROS_DEBUG("Detection image has been published.");
   return true;
 }

@@ -21,6 +21,7 @@
 #include <actionlib/server/simple_action_server.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/Point.h>
 #include <image_transport/image_transport.h>
 
@@ -34,6 +35,9 @@
 #include <darknet_ros_msgs/BoundingBoxes.h>
 #include <darknet_ros_msgs/BoundingBox.h>
 #include <darknet_ros_msgs/CheckForObjectsAction.h>
+
+//detection_msgs
+#include <detection_msgs/PointCloudImage.h>
 
 namespace darknet_ros {
 
@@ -113,11 +117,21 @@ class YoloObjectDetector
    */
   void runYolo(cv::Mat &fullFrame, int id = 0);
 
+  /*
+   * Run YOLO and detect obstacles with pointcloud image.
+   */
+  void runPointCloudYolo(cv::Mat& fullFrame, const sensor_msgs::PointCloud2& cloud, int id = 0);
+
   /*!
    * Callback of camera.
    * @param[in] msg image pointer.
    */
   void cameraCallback(const sensor_msgs::ImageConstPtr& msg);
+
+  /*
+   *  Callback for pointcloud message
+   */
+  void pointcloudCallback(const sensor_msgs::PointCloud2ConstPtr& msg);
 
   /*!
    * Check for objects action goal callback.
@@ -141,6 +155,11 @@ class YoloObjectDetector
    */
   bool publishDetectionImage(const cv::Mat& detectionImage);
 
+  /*
+   * Publishes the detection image with pointcloud.
+   */
+  bool publishDetectionImageWithPC(const cv::Mat& detectionImage, const sensor_msgs::PointCloud2& cloud);
+
   //! Typedefs.
   typedef actionlib::SimpleActionServer<darknet_ros_msgs::CheckForObjectsAction> CheckForObjectsActionServer;
   typedef std::shared_ptr<CheckForObjectsActionServer> CheckForObjectsActionServerPtr;
@@ -160,6 +179,8 @@ class YoloObjectDetector
 
   //! ROS subscriber and publisher.
   image_transport::Subscriber imageSubscriber_;
+  // ros::Subscriber imageSubscriber_;
+  ros::Subscriber pointcloudSubscriber_;
   ros::Publisher objectPublisher_;
   ros::Publisher boundingBoxesPublisher_;
 
@@ -183,6 +204,7 @@ class YoloObjectDetector
 
   //! Publisher of the bounding box image.
   ros::Publisher detectionImagePublisher_;
+  ros::Publisher detectionPointCloudPublisher_;
 };
 
 } /* namespace darknet_ros*/
