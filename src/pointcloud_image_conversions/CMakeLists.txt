@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(pointcloud_image_conversions)
+project(pointcloud_image_conversion)
 
 add_compile_options(-std=c++11)
 
@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES pointcloud_image_conversions
+  LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS roscpp sensor_msgs pcl_conversions pcl_ros
 #  DEPENDS system_lib
 )

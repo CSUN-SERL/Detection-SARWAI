@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>pointcloud_image_conversions</name>
+  <name>pointcloud_image_conversion</name>
   <version>0.0.0</version>
-  <description>The pointcloud_image_conversions package</description>
+  <description>The pointcloud_image_conversion package</description>
   <maintainer email="logan@todo.todo">logan</maintainer>
   <license>TODO</license>
 
