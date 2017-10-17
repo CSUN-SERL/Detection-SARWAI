@@ -5,15 +5,13 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "pointcloudnormalizer");
   ros::NodeHandle nh;
 
-  unsigned original_width;
-  unsigned original_height;
   unsigned new_height;
   unsigned new_width;
 
-  new_width = 800;
-  new_height = 618;
+  new_width = 0;
+  new_height = 0;
 
-  sarwai::NormalizerHandler handler(&nh, new_width, new_height);
+  sarwai::NormalizerHandler handler(&nh, new_width, new_height, "/sarwai_detection/detection_pointimage", "/sarwai_detection/detection_normalizedpointimage");
 
   ros::spin();
 }
