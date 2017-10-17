@@ -1,0 +1,2 @@
+ProcessedVisualDetection detection
+sensor_msgs/Image point_image
