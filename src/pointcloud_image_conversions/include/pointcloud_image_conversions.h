@@ -5,6 +5,6 @@
 
 namespace sarwai {
   namespace pc_conversions {
-    sensor_msgs::Image extractImageFromPointCloud2(const sensor_msgs::PointCloud2 cloud);
+    sensor_msgs::Image extractImageFromPointCloud2(const sensor_msgs::PointCloud2& cloud);
   }
 }
