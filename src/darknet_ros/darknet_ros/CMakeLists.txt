@@ -56,6 +56,8 @@ find_package(catkin REQUIRED
     actionlib
     darknet_ros_msgs
     image_transport
+    pointcloud_image_conversion
+    detection_msgs
 )
 
 # Enable OPENCV in darknet
@@ -75,6 +77,8 @@ catkin_package(
     std_msgs
     darknet_ros_msgs
     image_transport
+    pointcloud_image_conversion
+    detection_msgs
   DEPENDS
     Boost
 )
