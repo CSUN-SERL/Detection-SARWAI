@@ -17,7 +17,8 @@ namespace sarwai {
 
     ImageBoundingBoxMerger();
     ~ImageBoundingBoxMerger();
-  
+    void TrackMagic();
+
   private:
 
     ros::NodeHandle* nh_;
