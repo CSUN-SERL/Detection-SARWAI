@@ -23,20 +23,6 @@ namespace sarwai {
   }
 
   void VisualDetectionTracker::AddTracker(const cv::Mat &image_with_bounding_box, cv::Rect2d bounding_box) {
-    /*
-        if (trackerType == "BOOSTING")
-            tracker = TrackerBoosting::create();
-        if (trackerType == "MIL")
-            tracker = TrackerMIL::create();
-        if (trackerType == "KCF")
-            tracker = TrackerKCF::create();
-        if (trackerType == "TLD")
-            tracker = TrackerTLD::create();
-        if (trackerType == "MEDIANFLOW")
-            tracker = TrackerMedianFlow::create();
-        if (trackerType == "GOTURN")
-            tracker = TrackerGOTURN::create();
-    */
     cv::Ptr<cv::Tracker> new_tracker;
     switch (this->tracking_algorithm_) {
       case TrackingAlgorithm::BOOSTING :

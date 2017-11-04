@@ -18,6 +18,8 @@ namespace sarwai {
     //Publishes to visual_detection topic
       this->visual_detection_pub_ = this->nh_->advertise<detection_msgs::ProcessedVisualDetection>(
         "visual_detection", 1000); 
+      
+      this->tracking_handler_ = new VisualDetectionTracker(TrackingAlgorithm::KCF);
   }
   
   ImageBoundingBoxMerger::~ImageBoundingBoxMerger() {
@@ -108,6 +110,8 @@ namespace sarwai {
     image_copy = *image_msg;
     //reassigns header value as the transition to cv and back drops the header data.
     image_copy.header = image.header;
+    cv::Rect2d rect_representation = cv::Rect2d(top_left_corner, bottom_right_corner);
+    this->tracking_handler_->AddTracker(image_matrix, rect_representation);
     PublishMergedData(image_copy, box);
   }
   

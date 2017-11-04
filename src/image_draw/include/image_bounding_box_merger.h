@@ -10,6 +10,8 @@
 #include "darknet_ros_msgs/BoundingBoxes.h"
 #include "detection_msgs/ProcessedVisualDetection.h"
 
+#include "visual_detection_tracker.h"
+
 namespace sarwai {
 
   class ImageBoundingBoxMerger {
@@ -21,6 +23,7 @@ namespace sarwai {
 
   private:
 
+    VisualDetectionTracker* tracking_handler_;
     ros::NodeHandle* nh_;
 
     ros::Subscriber image_frame_sub_;
