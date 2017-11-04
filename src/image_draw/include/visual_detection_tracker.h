@@ -19,11 +19,13 @@ namespace sarwai {
     VisualDetectionTracker(TrackingAlgorithm tracking_algorithm);
     void TrackFrame(const cv::Mat &image_matrix);
     void AddTracker(const cv::Mat &image_with_bounding_box, cv::Rect2d);
+    bool HasActiveTrackers();
     ~VisualDetectionTracker();
 
   private:
     TrackingAlgorithm tracking_algorithm_;
     std::vector<cv::Ptr<cv::Tracker> > trackers_;
+    std::vector<cv::Rect2d> tracking_boxes_;
     cv::VideoCapture video_capture_;
     cv::VideoWriter frame_writer_;
   };

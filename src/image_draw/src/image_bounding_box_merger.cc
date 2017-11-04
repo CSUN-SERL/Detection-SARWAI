@@ -1,4 +1,5 @@
 #include "image_bounding_box_merger.h"
+#include "sensor_msgs/Image.h"
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
 
@@ -19,9 +20,19 @@ namespace sarwai {
       this->visual_detection_pub_ = this->nh_->advertise<detection_msgs::ProcessedVisualDetection>(
         "visual_detection", 1000); 
       
+    this->raw_image_frame_sub_ = this->nh_->subscribe(
+      "webcam/image_raw", 5, &ImageBoundingBoxMerger::RawImageCallback, this);
+
       this->tracking_handler_ = new VisualDetectionTracker(TrackingAlgorithm::KCF);
   }
   
+  void ImageBoundingBoxMerger::RawImageCallback(const sensor_msgs::ImageConstPtr& msg) {
+    if (this->tracking_handler_->HasActiveTrackers()) {
+      ROS_INFO("Sending image to tracker");
+      this->tracking_handler_->TrackFrame(cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image);
+    }
+  }
+
   ImageBoundingBoxMerger::~ImageBoundingBoxMerger() {
     //empty
   }
@@ -39,9 +50,8 @@ namespace sarwai {
   }
 
   //Recives images from topic
-  void ImageBoundingBoxMerger::ImageCallback(const sensor_msgs::ImageConstPtr& msg) {  
-    //IMage is pushes into queue 
-    this->video_image_frames_.push(*msg);   
+  void ImageBoundingBoxMerger::ImageCallback(const sensor_msgs::ImageConstPtr& msg) {
+    this->video_image_frames_.push(*msg);
     RunImageProcess();
   }
 
@@ -98,7 +108,7 @@ namespace sarwai {
     cv_bridge::CvImagePtr cv_image;
     cv_image = cv_bridge::toCvCopy(image_copy, sensor_msgs::image_encodings::BGR8);
     cv::Mat image_matrix = cv_image->image;
-    
+    cv::Mat test_matrix = cv_image->image;
     // Draw the bounding box to the OpenCV matrix
     //CV draw function
     cv::Point top_left_corner = cv::Point(box.xmin, box.ymin);  
@@ -111,7 +121,10 @@ namespace sarwai {
     //reassigns header value as the transition to cv and back drops the header data.
     image_copy.header = image.header;
     cv::Rect2d rect_representation = cv::Rect2d(top_left_corner, bottom_right_corner);
-    this->tracking_handler_->AddTracker(image_matrix, rect_representation);
+    if (!this->tracking_handler_->HasActiveTrackers()) {
+      this->tracking_handler_->AddTracker(test_matrix, rect_representation);
+    }
+    
     PublishMergedData(image_copy, box);
   }
   

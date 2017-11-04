@@ -30,6 +30,8 @@ namespace sarwai {
     ros::Subscriber bounding_box_sub_;
     ros::Subscriber detection_flag_sub_;
 
+    ros::Subscriber raw_image_frame_sub_;
+
     ros::Publisher visual_detection_pub_;
     //Queue hold series of 1s and 0s
     std::queue<int> detection_flag_;  
@@ -44,6 +46,7 @@ namespace sarwai {
       sensor_msgs::Image);
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
     void ArrayReceived(const darknet_ros_msgs::BoundingBoxes& msg);
+    void RawImageCallback(const sensor_msgs::ImageConstPtr& msg);
     void ObjectDetected(const std_msgs::Int8& msg);
     void DrawRectAndPublishImage(const darknet_ros_msgs::BoundingBox &box, const sensor_msgs::Image &);
   };
