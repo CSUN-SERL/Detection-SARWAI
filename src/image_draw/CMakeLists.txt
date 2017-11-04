@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   darknet_ros_msgs
   rospy
   detection_msgs
+  OpenCV REQUIRED
 )
 
 catkin_package(
@@ -28,10 +29,15 @@ catkin_package(
 
 include_directories(
   include
+  #OpenCV_INCLUDE_DIR
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME}_node src/image_listener.cpp src/image_bounding_box_merger.cc src/detection_tracker.cc)
+add_executable(
+  ${PROJECT_NAME}_node
+  src/image_listener.cpp
+  src/image_bounding_box_merger.cc
+  src/visual_detection_tracker.cc)
 
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
@@ -41,6 +47,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
+  "/usr/local/lib/libopencv_tracking.so"
   ${catkin_LIBRARIES}
 )
 

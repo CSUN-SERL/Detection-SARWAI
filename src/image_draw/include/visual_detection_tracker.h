@@ -6,22 +6,24 @@
 #include <memory>
 
 #include <opencv2/opencv.hpp>
-// #include <opencv2/video/tracking.hpp>
-#include <tracker.hpp>
+#include <opencv2/tracking/tracking.hpp>
+#include <opencv2/tracking/tracker.hpp>
 #include <opencv2/core/ocl.hpp>
 
 namespace sarwai {
+
+  enum TrackingAlgorithm {BOOSTING, MIL, KCF, TLD, MEDIANFLOW, GOTURN};
+  
   class VisualDetectionTracker {
   public:
-    VisualDetectionTracker(std::string tracking_algorithm);
-    void AddTracker(const cv::Mat &image_with_bounding_box);
+    VisualDetectionTracker(TrackingAlgorithm tracking_algorithm);
     void TrackFrame(const cv::Mat &image_matrix);
+    void AddTracker(const cv::Mat &image_with_bounding_box, cv::Rect2d);
+    ~VisualDetectionTracker();
+
   private:
-    std::string tracking_algorithm_;
-
-
-    std::vector<std::shared_ptr<cv::Tracker>> trackers_;
-    
+    TrackingAlgorithm tracking_algorithm_;
+    std::vector<cv::Ptr<cv::Tracker> > trackers_;
     cv::VideoCapture video_capture_;
     cv::VideoWriter frame_writer_;
   };
