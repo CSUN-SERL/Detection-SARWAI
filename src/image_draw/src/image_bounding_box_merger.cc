@@ -68,6 +68,20 @@ namespace sarwai {
              //seting item in front of queue to bounding_box
           std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = this->bounding_boxes_.front();  
           sensor_msgs::Image master_image = this->video_image_frames_.front();
+          
+          // Send boxes and image to the tracking system
+          std::vector<cv::Rect2d> detection_bbs;
+          for (int i = 0; i < bounding_boxes_.size(); i++) {
+            darknet_ros_msgs::BoundingBox bb = bounding_boxes.at(i);
+            cv::Rect2d bb_rect(bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin);
+            detection_bbs.push_back(bb_rect);
+          }
+
+          this->tracking_handler_->AddTrackers(
+            cv_bridge::toCvCopy(master_image, sensor_msgs::image_encodings::BGR8)->image,
+            detection_bbs
+          );
+
           for (int i = 0; i < bounding_boxes.size(); i++) {
             DrawRectAndPublishImage(bounding_boxes[i], master_image);    
           }
@@ -120,10 +134,6 @@ namespace sarwai {
     image_copy = *image_msg;
     //reassigns header value as the transition to cv and back drops the header data.
     image_copy.header = image.header;
-    cv::Rect2d rect_representation = cv::Rect2d(top_left_corner, bottom_right_corner);
-    if (!this->tracking_handler_->HasActiveTrackers()) {
-      this->tracking_handler_->AddTracker(test_matrix, rect_representation);
-    }
     
     PublishMergedData(image_copy, box);
   }

@@ -18,12 +18,14 @@ namespace sarwai {
   public:
     VisualDetectionTracker(TrackingAlgorithm tracking_algorithm);
     void TrackFrame(const cv::Mat &image_matrix);
-    void AddTracker(const cv::Mat &image_with_bounding_box, cv::Rect2d);
-    
+    void AddTrackers(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
     bool HasActiveTrackers();
+    // These two method should be private, but I can't get it to compile when they are...
+    
     ~VisualDetectionTracker();
-
+    
   private:
+    
     TrackingAlgorithm tracking_algorithm_;
     // The primary trackers that log data is pulled from
     std::vector<cv::Ptr<cv::Tracker> > trackers_;

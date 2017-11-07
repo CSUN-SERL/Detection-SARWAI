@@ -3,6 +3,25 @@
 
 namespace sarwai {
 
+  /*
+  Returns true if the detection_bb is found to be "close enough" to any of the existing,
+  and currently tracked bounding boxes. This indicates the new detection is already being tracked
+  and will be ignored.
+
+  Returns false if there isn't an existing tracking bounding box that matches the detection bounding box
+  */
+  bool IsRedundantDetection(cv::Rect2d detection_bb, std::vector<cv::Rect2d> tracking_bbs) {
+    for (int i = 0; i < tracking_bbs.size(); i++) {
+      cv::Rect2d tracking_bb = tracking_bbs.at(i);
+      // Compare detection_bb to all bounding boxes in tracking_bbs
+
+      // return true if there's a redundancy detected
+    }
+
+
+    return false;
+  }
+
   VisualDetectionTracker::VisualDetectionTracker(TrackingAlgorithm alg) {
     this->tracking_algorithm_ = alg;
   }
@@ -25,29 +44,35 @@ namespace sarwai {
     }
   }
 
-  void VisualDetectionTracker::AddTracker(const cv::Mat &image_with_bounding_box, cv::Rect2d bounding_box) {
-    cv::Ptr<cv::Tracker> new_tracker;
-    switch (this->tracking_algorithm_) {
-      case TrackingAlgorithm::BOOSTING :
-      new_tracker = cv::TrackerBoosting::create(); break;
-      case TrackingAlgorithm::MIL :
-      new_tracker = cv::TrackerMIL::create(); break;
-      case TrackingAlgorithm::KCF :
-      new_tracker = cv::TrackerKCF::create(); break;
-      case TrackingAlgorithm::TLD :
-      new_tracker = cv::TrackerTLD::create(); break;
-      case TrackingAlgorithm::MEDIANFLOW :
-      new_tracker = cv::TrackerMedianFlow::create(); break;
-      case TrackingAlgorithm::GOTURN : 
-      new_tracker = cv::TrackerGOTURN::create(); break;
-      default:
-      return;
+  void VisualDetectionTracker::AddTrackers(const cv::Mat &image, std::vector<cv::Rect2d> detection_bbs) {
+    for (int i = 0; i < detection_bbs.size(); i++) {
+      cv::Rect2d det_bb = detection_bbs.at(i);
+      if (IsRedundantDetection(det_bb) == false) {
+        cv::Ptr<cv::Tracker> new_tracker;
+        switch (this->tracking_algorithm_) {
+          case TrackingAlgorithm::BOOSTING :
+          new_tracker = cv::TrackerBoosting::create(); break;
+          case TrackingAlgorithm::MIL :
+          new_tracker = cv::TrackerMIL::create(); break;
+          case TrackingAlgorithm::KCF :
+          new_tracker = cv::TrackerKCF::create(); break;
+          case TrackingAlgorithm::TLD :
+          new_tracker = cv::TrackerTLD::create(); break;
+          case TrackingAlgorithm::MEDIANFLOW :
+          new_tracker = cv::TrackerMedianFlow::create(); break;
+          case TrackingAlgorithm::GOTURN : 
+          new_tracker = cv::TrackerGOTURN::create(); break;
+          default:
+          return;
+        }
+
+        new_tracker->init(image, det_bb);
+        cv::namedWindow("tracking", cv::WINDOW_NORMAL);
+        this->trackers_.push_back(new_tracker);
+        this->tracking_boxes_.push_back(det_bb);
+      }
+
     }
-    new_tracker->init(image_with_bounding_box, bounding_box);
-    cv::namedWindow("tracking", cv::WINDOW_NORMAL);
-    this->trackers_.push_back(new_tracker);
-    this->tracking_boxes_.push_back(bounding_box);
-    return;
   }
 
   bool VisualDetectionTracker::HasActiveTrackers() {
