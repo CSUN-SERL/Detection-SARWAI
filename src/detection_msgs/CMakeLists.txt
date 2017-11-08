@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    ImageBoundingBox.msg
    ProcessedVisualDetection.msg
+   AudioFileReady.msg
  )
 
 ## Generate added messages and services with any dependencies listed here
