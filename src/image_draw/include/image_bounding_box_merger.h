@@ -38,7 +38,7 @@ namespace sarwai {
     //Queue hold video frames of type sensor_msgs::Image
     std::queue<sensor_msgs::Image> video_image_frames_; 
     //queue of bounding box information
-    std::queue<std::vector<darknet_ros_msgs::BoundingBox>> bounding_boxes_;  
+    std::queue<std::vector<darknet_ros_msgs::BoundingBox>> bounding_boxes_matrix_;  
     //Publishes data
     void PublishMergedData(sensor_msgs::Image, darknet_ros_msgs::BoundingBox); 
     void RunImageProcess();
