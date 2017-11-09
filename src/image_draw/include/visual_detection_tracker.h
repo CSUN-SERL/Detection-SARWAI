@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <thread>
+#include <mutex>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking/tracking.hpp>
@@ -25,11 +27,12 @@ namespace sarwai {
     ~VisualDetectionTracker();
     
   private:
-    
     TrackingAlgorithm tracking_algorithm_;
     // The primary trackers that log data is pulled from
     std::vector<cv::Ptr<cv::Tracker> > trackers_;
     std::vector<cv::Rect2d> tracking_boxes_;
+
+    std::mutex tracking_mtx_;
   };
 }
 
