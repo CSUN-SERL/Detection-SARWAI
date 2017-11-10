@@ -8,7 +8,7 @@
 
 namespace sarwai {
 
-  #define INIT_IMAGE_STRATEGY(STRATEGYNAME) public: static std::string Classname() {return #STRATEGYNAME;} static ImageLoggingStrategy * Get(){return new STRATEGYNAME;}
+  //#define INIT_IMAGE_STRATEGY(STRATEGYNAME) public: static std::string Classname() {return #STRATEGYNAME;} static ImageLoggingStrategy * Get(){return new STRATEGYNAME;}
 
   /**
   *   LoggingStrategy interface, containing one outward facing

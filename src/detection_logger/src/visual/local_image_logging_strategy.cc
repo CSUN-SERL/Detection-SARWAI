@@ -20,7 +20,7 @@ namespace sarwai {
     std::stringstream textpath;
     time_t currtime = time(0);
     struct tm * date = localtime( &currtime );
-    textpath << (date->tm_year + 1900) << "/" << (date->tm_mon + 1) << "/" << date->tm_mday << "/";;
+    textpath << (date->tm_year + 1900) << "/" << (date->tm_mon + 1) << "/" << date->tm_mday << "/";
     imagepath << textpath.str();
     std::ofstream textout;
 
@@ -99,7 +99,7 @@ namespace sarwai {
 
     // output text
     std::ostringstream formattedstring;
-    formattedstring <<
+    formattedstring << "visual," << 
     boxdata.object_class << "," <<
     boxdata.confidence_rating << "," <<
     boxdata.timestamp << "," <<
@@ -137,5 +137,5 @@ namespace sarwai {
     return true;
   }
   
-  REGISTER_STRATEGY(LocalImageLoggingStrategy)
+  //REGISTER_STRATEGY(LocalImageLoggingStrategy)
 }

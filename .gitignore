@@ -62,3 +62,5 @@ src/detection_logger/\.vscode/
 #src/darknet_ros/darknet/
 
 *.png
+
+src/\.vscode/

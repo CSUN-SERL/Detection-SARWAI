@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    ImageBoundingBox.msg
    ProcessedVisualDetection.msg
+   ProcessedAudioDetection.msg
    AudioFileReady.msg
  )
 

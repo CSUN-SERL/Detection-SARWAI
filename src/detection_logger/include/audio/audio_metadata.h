@@ -5,8 +5,7 @@ namespace sarwai {
 
     struct AudioMetadata {
         int start_timestamp;
-        int end_timestamp;
-        float direction;
+        float confidence;
     };
 
 }

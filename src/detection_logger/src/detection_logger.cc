@@ -15,7 +15,7 @@ namespace sarwai {
     audio_topic_name_ = audio_topic_name;
     nh_ = &nh;
     image_sub_ = nh_->subscribe(image_topic_name_.c_str(), 1000, &DetectionLogger::ImageLogCallback, this);
-    // audio_sub_ = nh_->subscribe(audio_topic_name_.c_str(), 1000, &DetectionLogger::AudioLogCallback, this);
+    audio_sub_ = nh_->subscribe(audio_topic_name_.c_str(), 1000, &DetectionLogger::AudioLogCallback, this);
     
     // temp, until we get a finalized way of choosing the strategy
     visual_logging_strategy_ = new LocalImageLoggingStrategy;
@@ -28,7 +28,7 @@ namespace sarwai {
     delete audio_logging_strategy_;
   }
   
-  void DetectionLogger::InitLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg,
+  void DetectionLogger::InitVisualLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg,
     struct BoxMetadata &log_entry) {
     
     log_entry.box_height = msg->bounding_box.ymax - msg->bounding_box.ymin;
@@ -40,18 +40,30 @@ namespace sarwai {
     log_entry.object_class = msg->bounding_box.Class;
   }
 
+  void DetectionLogger::InitAudioEntryStruct(const detection_msgs::ProcessedAudioDetection::ConstPtr &msg, struct AudioMetadata &log_entry){
+    log_entry.start_timestamp = (int)msg->header.stamp.sec;
+    log_entry.confidence = 0;
+    for(unsigned i = 0; i < msg->confidence.size(); ++i){
+      if(log_entry.confidence < msg->confidence[i]){
+        log_entry.confidence = msg->confidence[i];
+      }
+    }
+  }
+
   void DetectionLogger::ImageLogCallback(
     const detection_msgs::ProcessedVisualDetection::ConstPtr& msg) {
 
     struct BoxMetadata log_entry;
-    InitLogEntryStruct(msg, log_entry);
+    InitVisualLogEntryStruct(msg, log_entry);
     sensor_msgs::Image image = msg->image;
     this->visual_logging_strategy_->Log(image, log_entry);
   }
 
-  /*
+  
   void DetectionLogger::AudioLogCallback(const detection_msgs::ProcessedAudioDetection::ConstPtr &msg) {
-    // TODO: implementation
+    struct AudioMetadata audio_entry;
+    InitAudioEntryStruct(msg, audio_entry);
+    this->audio_logging_strategy_->Log(msg->filename, audio_entry);
   }
-  */
+  
 };
