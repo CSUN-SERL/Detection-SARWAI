@@ -93,7 +93,7 @@ namespace sarwai {
 
     // output text
     std::ostringstream formattedstring;
-    formattedstring << "class:" << boxdata.object_class << ";confidence:" << boxdata.confidence_rating << ";timestamp:" << boxdata.timestamp << ";x-coord:" << boxdata.left_x_coord << ";y-coord:" << boxdata.top_y_coord << ";width:" << boxdata.box_width << ";height:" << boxdata.box_height << "imagefilename:" << "image_" << filenum << ".jpg,\n";
+    formattedstring << "class:" << boxdata.object_class << ";confidence:" << boxdata.confidence_rating << ";timestamp:" << boxdata.timestamp << ";x-coord:" << boxdata.left_x_coord << ";y-coord:" << boxdata.top_y_coord << ";width:" << boxdata.box_width << ";height:" << boxdata.box_height << ";depth:" << boxdata.depth <<";imagefilename:" << "image_" << filenum << ".jpg,\n";
     textout << formattedstring.str();
     /**/
     
