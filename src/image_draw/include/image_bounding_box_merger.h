@@ -22,8 +22,7 @@ namespace sarwai {
     void TrackMagic();
 
   private:
-
-    VisualDetectionTracker* tracking_handler_;
+    //VisualDetectionTracker* tracking_handler_;
     ros::NodeHandle* nh_;
 
     ros::Subscriber image_frame_sub_;

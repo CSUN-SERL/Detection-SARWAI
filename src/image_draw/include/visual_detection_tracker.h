@@ -27,6 +27,7 @@ namespace sarwai {
     ~VisualDetectionTracker();
     
   private:
+    
     TrackingAlgorithm tracking_algorithm_;
     // The primary trackers that log data is pulled from
     std::vector<cv::Ptr<cv::Tracker> > trackers_;

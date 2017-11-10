@@ -9,7 +9,7 @@ namespace sarwai {
     //Subscribes to darknet_ros/detection_image
     this->nh_ = new ros::NodeHandle();
     this->image_frame_sub_ = this->nh_->subscribe(
-      "darknet_ros/detection_image", 1, &ImageBoundingBoxMerger::ImageCallback, this); 
+      "darknet_ros/detection_image", 1000, &ImageBoundingBoxMerger::ImageCallback, this); // 1
     //subscribes to darknet_ros/bounding_boxes    
     this->bounding_box_sub_ = this->nh_->subscribe(
       "darknet_ros/bounding_boxes", 1000, &ImageBoundingBoxMerger::ArrayReceived, this); 
@@ -20,18 +20,21 @@ namespace sarwai {
       this->visual_detection_pub_ = this->nh_->advertise<detection_msgs::ProcessedVisualDetection>(
         "visual_detection", 1000); 
       
-    this->raw_image_frame_sub_ = this->nh_->subscribe(
-      "webcam/image_raw", 5, &ImageBoundingBoxMerger::RawImageCallback, this);
+    /*this->raw_image_frame_sub_ = this->nh_->subscribe(
+      "darknet_ros/detection_image", 1000, &ImageBoundingBoxMerger::RawImageCallback, this);   //webcam/image_raw 5
 
-      this->tracking_handler_ = new VisualDetectionTracker(TrackingAlgorithm::KCF);
+      this->tracking_handler_ = new VisualDetectionTracker(TrackingAlgorithm::BOOSTING);
+
+*/
+
   }
   
-  void ImageBoundingBoxMerger::RawImageCallback(const sensor_msgs::ImageConstPtr& msg) {
-    if (this->tracking_handler_->HasActiveTrackers()) {
-      ROS_INFO("Sending image to tracker");
+  /*void ImageBoundingBoxMerger::RawImageCallback(const sensor_msgs::ImageConstPtr& msg) {
+    //if (this->tracking_handler_->HasActiveTrackers()) {
+      //ROS_INFO("Sending image to tracker");
       this->tracking_handler_->TrackFrame(cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image);
-    }
-  }
+    //}
+  }*/
 
   ImageBoundingBoxMerger::~ImageBoundingBoxMerger() {
     //empty
@@ -77,10 +80,14 @@ namespace sarwai {
             detection_bbs.push_back(bb_rect);
           }
 
+          /*if(!check){
           this->tracking_handler_->AddTrackers(
             cv_bridge::toCvCopy(master_image, sensor_msgs::image_encodings::BGR8)->image,
             detection_bbs
           );
+          check = true;
+
+  		}*/
 
           for (int i = 0; i < bounding_boxes.size(); i++) {
             DrawRectAndPublishImage(bounding_boxes[i], master_image);    
