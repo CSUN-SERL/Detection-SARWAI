@@ -17,8 +17,8 @@ fileNum = 0
 fileObj = open(FILENAME + str(fileNum) + '.mp3', 'w')
 currentSize = 0
 
-FILE_DURATION = 5
-AUDIO_BITRATE = 16*1000
+FILE_DURATION = 10
+AUDIO_BITRATE = 48000
 
 pub = 0
 
@@ -29,14 +29,15 @@ def audioSaveCallback(data):
 
   for sample in data.data:
     fileObj.write(sample)
-    
+
   currentSize += 2 * len(data.data)
   if(currentSize >= AUDIO_BITRATE * FILE_DURATION):
+    os.system("ffmpeg -i " + FILENAME + str(fileNum) + ".mp3 -ac 1 " + FILENAME + str(fileNum) + ".wav")
     #construct and send message
     msg = AudioFileReady()
-    msg.file_name = 'audio' + str(fileNum) + '.mp3'
+    msg.file_name = 'audio' + str(fileNum) + '.wav'
     pub.publish(msg)
-    
+
     #Close file and increment number
     fileObj.close()
     fileNum += 1

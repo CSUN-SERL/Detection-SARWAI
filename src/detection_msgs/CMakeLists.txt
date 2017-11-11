@@ -19,9 +19,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-   ImageBoundingBox.msg
    ProcessedVisualDetection.msg
-   ProcessedAudioDetection.msg
+   DetectionPointCloud.msg
+   PointCloudImage.msg
+   AudioDetection.msg
    AudioFileReady.msg
  )
 
