@@ -40,14 +40,9 @@ namespace sarwai {
     log_entry.object_class = msg->bounding_box.Class;
   }
 
-  void DetectionLogger::InitAudioEntryStruct(const detection_msgs::ProcessedAudioDetection::ConstPtr &msg, struct AudioMetadata &log_entry){
+  void DetectionLogger::InitAudioEntryStruct(const detection_msgs::AudioDetection::ConstPtr &msg, struct AudioMetadata &log_entry){
     log_entry.start_timestamp = (int)msg->header.stamp.sec;
-    log_entry.confidence = 0;
-    for(unsigned i = 0; i < msg->confidence.size(); ++i){
-      if(log_entry.confidence < msg->confidence[i]){
-        log_entry.confidence = msg->confidence[i];
-      }
-    }
+    log_entry.confidence = msg->confidence;
   }
 
   void DetectionLogger::ImageLogCallback(
@@ -60,7 +55,7 @@ namespace sarwai {
   }
 
   
-  void DetectionLogger::AudioLogCallback(const detection_msgs::ProcessedAudioDetection::ConstPtr &msg) {
+  void DetectionLogger::AudioLogCallback(const detection_msgs::AudioDetection::ConstPtr &msg) {
     struct AudioMetadata audio_entry;
     InitAudioEntryStruct(msg, audio_entry);
     this->audio_logging_strategy_->Log(msg->filename, audio_entry);

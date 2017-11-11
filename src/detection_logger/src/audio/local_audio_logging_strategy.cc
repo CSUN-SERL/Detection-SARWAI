@@ -48,7 +48,18 @@ namespace sarwai {
 
     textout.open(textpath.str(), std::ofstream::app); 
     if(!(textout.is_open())){
-      ROS_INFO("textout aint open");
+      std::stringstream textpathmaker;
+      textpathmaker << (date->tm_year + 1900) << "/";
+      mkdir(textpathmaker.str().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+      textpathmaker << (date->tm_mon + 1) << "/";
+      mkdir(textpathmaker.str().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+      textpathmaker << date->tm_mday << "/";
+      mkdir(textpathmaker.str().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+      textpathmaker << "text/";
+      mkdir(textpathmaker.str().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+      if(!textout.is_open()) {
+        ROS_INFO("textout aint open");
+      }
     }
 
     std::ostringstream formattedstring;

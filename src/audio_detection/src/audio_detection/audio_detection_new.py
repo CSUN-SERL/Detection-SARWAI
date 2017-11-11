@@ -64,6 +64,6 @@ def listen_for_file():
   rospy.init_node('listenForAudioFile', anonymous=True)
   rospy.Subscriber('sarwai_detection/detection_audio_ready', AudioFileReady, transcribe_file)
 
-  pub = rospy.Publisher('sarwai_detection/detection_audio_transcipt', AudioDetection, queue_size=1000)
+  pub = rospy.Publisher('sarwai_detection/detection_audio_transcript', AudioDetection, queue_size=1000)
 
   rospy.spin()
