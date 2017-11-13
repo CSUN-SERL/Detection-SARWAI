@@ -19,7 +19,7 @@ VisualDetectionTracker::VisualDetectionTracker()
     this->detection_flag_sub_ = this->nh_->subscribe(
       "darknet_ros/found_object", 1000, &VisualDetectionTracker::ObjectDetected, this); 
 
-	this->tracking_algorithm_ = TrackingAlgorithm::BOOSTING;
+	this->tracking_algorithm_ = TrackingAlgorithm::KCF;
 }
 
 VisualDetectionTracker::~VisualDetectionTracker() 
@@ -31,16 +31,13 @@ VisualDetectionTracker::~VisualDetectionTracker()
 void VisualDetectionTracker::ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
 	this->video_image_frames_.push(*msg);
-	ROS_INFO("testing trackkkkkkk");
 	process();
-	
-
 }
 
 void VisualDetectionTracker::ArrayReceived(const darknet_ros_msgs::BoundingBoxes& msg)
 {
-	this->bounding_boxes = msg.boundingBoxes;
-	this->bounding_boxes_matrix_.push(bounding_boxes); 
+	//this->bounding_boxes = msg.boundingBoxes;
+	this->bounding_boxes_matrix_.push(msg.boundingBoxes); 
 
 	
 }
@@ -53,24 +50,27 @@ void VisualDetectionTracker::ObjectDetected(const std_msgs::Int8& msg)
 
 void VisualDetectionTracker::process()
 {
+	bounding_boxes = bounding_boxes_matrix_.front();
 	std::vector<cv::Rect2d> detection_bbs;
-	//for(int i=0; i<bounding_boxes.size(); i++)
-	//{
-		darknet_ros_msgs::BoundingBox bb = bounding_boxes.at(0);
+
+	for(int i=0; i<bounding_boxes.size(); i++)
+	{
+		darknet_ros_msgs::BoundingBox bb = bounding_boxes.at(i);
 		cv::Rect2d bb_rect(bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin);
 		detection_bbs.push_back(bb_rect);
-	//}
+	}
 		sensor_msgs::Image master_image = this->video_image_frames_.front();
 
 	if(!check)
 	{
-			AddTrackers(cv_bridge::toCvCopy(master_image, sensor_msgs::image_encodings::BGR8)->image, detection_bbs);
+		AddTrackers(cv_bridge::toCvCopy(master_image, sensor_msgs::image_encodings::BGR8)->image, detection_bbs);
 		
 		check = true;
 	}
 
 	TrackFrame(cv_bridge::toCvCopy(master_image, sensor_msgs::image_encodings::BGR8)->image);
 	video_image_frames_.pop();
+	bounding_boxes_matrix_.pop();
 
 }
 
@@ -82,7 +82,7 @@ void VisualDetectionTracker::process()
       // Compare detection_bb to all bounding boxes in tracking_bbs
 
       // AREA DIFFERENCE
-      float area_difference_percentage = 0.0;
+      //float area_difference_percentage = 0.0;
       float tracking_bb_area = tracking_bb.width * tracking_bb.height;
 
       if (std::max(det_bb_area, tracking_bb_area) / std::min(det_bb_area, tracking_bb_area) < 0.5) {
@@ -127,6 +127,8 @@ void VisualDetectionTracker::process()
   	if (HasActiveTrackers()) {
   		return;
   	}
+
+  	/*
     for (int i = 0; i < this->tracking_boxes_.size(); i++) {
       if (!IsRedundantDetection(this->tracking_boxes_.at(i), detection_bbs)) {
         this->trackers_.erase(this->trackers_.begin() + i);
@@ -135,34 +137,38 @@ void VisualDetectionTracker::process()
           break;
         }
       }
+    }*/
 
-    }
     for (int i = 0; i < detection_bbs.size(); i++) {
-      cv::Rect2d det_bb = detection_bbs.at(i);
-      if (IsRedundantDetection(det_bb, this->tracking_boxes_) == false) {
-        cv::Ptr<cv::Tracker> new_tracker;
-        switch (this->tracking_algorithm_) {
-          case TrackingAlgorithm::BOOSTING :
-          new_tracker = cv::TrackerBoosting::create(); break;
-          case TrackingAlgorithm::MIL :
-          new_tracker = cv::TrackerMIL::create(); break;
-          case TrackingAlgorithm::KCF :
-          new_tracker = cv::TrackerKCF::create(); break;
-          case TrackingAlgorithm::TLD :
-          new_tracker = cv::TrackerTLD::create(); break;
-          case TrackingAlgorithm::MEDIANFLOW :
-          new_tracker = cv::TrackerMedianFlow::create(); break;
-          case TrackingAlgorithm::GOTURN : 
-          new_tracker = cv::TrackerGOTURN::create(); break;
-          default:
-          return;
-        }
+		cv::Rect2d det_bb = detection_bbs.at(i);
+		cv::Ptr<cv::Tracker> new_tracker;
+		switch (this->tracking_algorithm_) {
+			case TrackingAlgorithm::BOOSTING :
+				new_tracker = cv::TrackerBoosting::create();
+				break;
+			case TrackingAlgorithm::MIL :
+				new_tracker = cv::TrackerMIL::create();
+				break;
+			case TrackingAlgorithm::KCF :
+				new_tracker = cv::TrackerKCF::create(); 
+				break;
+			case TrackingAlgorithm::TLD :
+				new_tracker = cv::TrackerTLD::create(); 
+				break;
+			case TrackingAlgorithm::MEDIANFLOW :
+				new_tracker = cv::TrackerMedianFlow::create(); 
+				break;
+			case TrackingAlgorithm::GOTURN : 
+				new_tracker = cv::TrackerGOTURN::create(); 
+				break;
+			default:
+				return;
+		}
 
         new_tracker->init(image, det_bb);
         // cv::namedWindow("tracking", cv::WINDOW_NORMAL);
         this->trackers_.push_back(new_tracker);
         this->tracking_boxes_.push_back(det_bb);
-      }
 
     }
 
