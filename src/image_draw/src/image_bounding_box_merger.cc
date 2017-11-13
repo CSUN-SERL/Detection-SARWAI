@@ -55,6 +55,7 @@ namespace sarwai {
   //Recives images from topic
   void ImageBoundingBoxMerger::ImageCallback(const sensor_msgs::ImageConstPtr& msg) {
     this->video_image_frames_.push(*msg);
+    ROS_INFO("testing image draw");
     RunImageProcess();
   }
 

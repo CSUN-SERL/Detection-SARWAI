@@ -10,11 +10,6 @@ int main(int argc, char **argv)
     
   ros::init(argc, argv, "image_track");
   sarwai::VisualDetectionTracker track;
-  
-  ros::Rate loop_rate(1);
+  ros::spin();
 
-  while (ros::ok()) {
-    ros::spinOnce();
-    loop_rate.sleep();
-  }
 }
