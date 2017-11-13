@@ -33,7 +33,7 @@ namespace sarwai {
     ~VisualDetectionTracker();
     
   private:
-    bool check;
+    bool isEmpty;
 
     ros::NodeHandle* nh_;
     ros::Subscriber information_;
@@ -45,6 +45,9 @@ namespace sarwai {
     ros::Subscriber image_frame_sub_;
     ros::Subscriber bounding_box_sub_;
     ros::Subscriber detection_flag_sub_;
+
+    ros::Publisher visual_detection_image_;
+    ros::Publisher visual_detection_bb_;
 
     std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes;
     std::queue<int> detection_flag_;  
