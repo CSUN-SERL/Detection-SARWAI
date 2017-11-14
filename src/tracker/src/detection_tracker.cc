@@ -104,7 +104,7 @@ void VisualDetectionTracker::process()
 
 
   void VisualDetectionTracker::TrackFrame(const cv::Mat &image_matrix) {
-  	if(this.trackers_.size() == 0)
+  	if(this->trackers_.size() == 0)
   	{
   		isEmpty = true;
   		return;
