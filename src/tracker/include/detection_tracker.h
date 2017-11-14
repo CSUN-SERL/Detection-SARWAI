@@ -22,19 +22,15 @@ namespace sarwai {
   enum TrackingAlgorithm {BOOSTING, MIL, KCF, TLD, MEDIANFLOW, GOTURN};
   
   class VisualDetectionTracker {
+
   public:
     VisualDetectionTracker();
-    void TrackFrame(const cv::Mat &image_matrix);
-    void AddTrackers(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
-    bool HasActiveTrackers();
-    bool IsRedundantDetection(cv::Rect2d detection_bb, std::vector<cv::Rect2d> tracking_bbs);
-    // These two method should be private, but I can't get it to compile when they are...
-    
     ~VisualDetectionTracker();
     
   private:
     bool isEmpty;
-
+    cv::Ptr<cv::Tracker> new_tracker;
+    
     ros::NodeHandle* nh_;
     ros::Subscriber information_;
     TrackingAlgorithm tracking_algorithm_;
@@ -60,7 +56,10 @@ namespace sarwai {
     void ArrayReceived(const darknet_ros_msgs::BoundingBoxes& msg);
     void ObjectDetected(const std_msgs::Int8& msg);
     void process();
-
+    void TrackFrame(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
+    void AddTrackers(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
+    bool HasActiveTrackers();
+    bool IsRedundantDetection(cv::Rect2d detection_bb, std::vector<cv::Rect2d> tracking_bbs);
   };
 }
 

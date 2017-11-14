@@ -49,7 +49,7 @@ void VisualDetectionTracker::ArrayReceived(const darknet_ros_msgs::BoundingBoxes
 
 void VisualDetectionTracker::ObjectDetected(const std_msgs::Int8& msg)
 {
-	this->detection_flag_.push(msg.data);
+	//this->detection_flag_.push(msg.data);
 }
 
 
@@ -64,18 +64,10 @@ void VisualDetectionTracker::process()
 		cv::Rect2d bb_rect(bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin);
 		detection_bbs.push_back(bb_rect);
 	}
-	sensor_msgs::Image master_image = this->video_image_frames_.front();
 
-	TrackFrame(cv_bridge::toCvCopy(master_image, sensor_msgs::image_encodings::BGR8)->image);
+	TrackFrame(cv_bridge::toCvCopy(this->video_image_frames_.front(), sensor_msgs::image_encodings::BGR8)->image, detection_bbs);
+	//AddTrackers(cv_bridge::toCvCopy(this->video_image_frames_.front(), sensor_msgs::image_encodings::BGR8)->image, detection_bbs);
 
-	if(isEmpty)
-	{
-		AddTrackers(cv_bridge::toCvCopy(master_image, sensor_msgs::image_encodings::BGR8)->image, detection_bbs);
-		//this->visual_detection_bb_.publish();
-		this->visual_detection_image_.publish(master_image);
-	}
-
-	
 	video_image_frames_.pop();
 	bounding_boxes_matrix_.pop();
 
@@ -103,18 +95,14 @@ void VisualDetectionTracker::process()
   }
 
 
-  void VisualDetectionTracker::TrackFrame(const cv::Mat &image_matrix) {
-  	if(this->trackers_.size() == 0)
-  	{
-  		isEmpty = true;
-  		return;
-  	}
+  void VisualDetectionTracker::TrackFrame(const cv::Mat &image_matrix, std::vector<cv::Rect2d> detect_bbs) {
 
+  	cv::Rect2d bb;
     for (int i = 0; i < this->trackers_.size(); i++) 
     {
       cv::Mat image_copy = image_matrix.clone();
       cv::Ptr<cv::Tracker> tracker = this->trackers_.at(i);
-      cv::Rect2d bb = this->tracking_boxes_.at(i);
+      bb = this->tracking_boxes_.at(i);
       bool object_tracked = tracker->update(image_copy, bb);
 
       if (object_tracked) 
@@ -127,7 +115,6 @@ void VisualDetectionTracker::process()
           cv::rectangle(image_copy, bb, 16711808, 10, 143);
           cv::imshow("tracking", image_copy);
           cv::waitKey(1);
-          isEmpty = false;
       }
       else 
       {
@@ -138,16 +125,24 @@ void VisualDetectionTracker::process()
       }
     }
 
+	if(this->trackers_.size() == 0 || IsRedundantDetection(bb, detect_bbs))
+  	{
+		AddTrackers(cv_bridge::toCvCopy(this->video_image_frames_.front(), sensor_msgs::image_encodings::BGR8)->image, detect_bbs);
+  		//publish
+  		ROS_INFO("SENDING");
+  		return;
+  	}
+
   }
 
 
   void VisualDetectionTracker::AddTrackers(const cv::Mat &image, std::vector<cv::Rect2d> detection_bbs) {
-  	if (HasActiveTrackers()) {
-  		return;
-  	}
+  	//if (HasActiveTrackers()) {
+  	//	return;
+  	//}
 
     for (int i = 0; i < detection_bbs.size(); i++) {
-    	cv::Rect2d det_bb = detection_bbs.at(i);
+
 		cv::Ptr<cv::Tracker> new_tracker;
 		switch (this->tracking_algorithm_) {
 			case TrackingAlgorithm::BOOSTING :
@@ -172,9 +167,9 @@ void VisualDetectionTracker::process()
 				return;
 		}
 
-        new_tracker->init(image, det_bb);
+        new_tracker->init(image, detection_bbs.at(i));
         this->trackers_.push_back(new_tracker);
-        this->tracking_boxes_.push_back(det_bb);
+        this->tracking_boxes_.push_back(detection_bbs.at(i));
     }
 
   }
