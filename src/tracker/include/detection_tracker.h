@@ -28,9 +28,6 @@ namespace sarwai {
     ~VisualDetectionTracker();
     
   private:
-    bool isEmpty;
-    cv::Ptr<cv::Tracker> new_tracker;
-    
     ros::NodeHandle* nh_;
     ros::Subscriber information_;
     TrackingAlgorithm tracking_algorithm_;
@@ -45,7 +42,6 @@ namespace sarwai {
     ros::Publisher visual_detection_image_;
     ros::Publisher visual_detection_bb_;
 
-    std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes;
     std::queue<int> detection_flag_;  
     //Queue hold video frames of type sensor_msgs::Image
     std::queue<sensor_msgs::Image> video_image_frames_; 
@@ -59,7 +55,7 @@ namespace sarwai {
     void TrackFrame(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
     void AddTrackers(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
     bool HasActiveTrackers();
-    bool IsRedundantDetection(cv::Rect2d detection_bb, std::vector<cv::Rect2d> tracking_bbs);
+    bool IsRedundantDetection(cv::Rect2d detection_bb, cv::Rect2d tracking_bbs); //std::vector<cv::Rect2d>
   };
 }
 

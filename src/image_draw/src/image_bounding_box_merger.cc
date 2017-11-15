@@ -60,44 +60,32 @@ namespace sarwai {
   }
 
   void ImageBoundingBoxMerger::RunImageProcess() {
+    
+
     //Process only if detection_flag_ queue and video_imag queue is not empty
-    if (
-        !this->detection_flag_.empty() &&       
-        !this->video_image_frames_.empty()
-    ) {
-      //Check if the frame has detections in it.
-      //A 1 indicates detections in image frame, 0 indicates no detections.
-      if (this->detection_flag_.front() == 1) {     //1 means we have data to process
-        if (!bounding_boxes_matrix_.empty()) { //Process if bounding_box queue is not empty
-             //seting item in front of queue to bounding_box
-          std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = this->bounding_boxes_matrix_.front();  
-          sensor_msgs::Image master_image = this->video_image_frames_.front();
-          
-          // Send boxes and image to the tracking system
-          std::vector<cv::Rect2d> detection_bbs;
-          for (int i = 0; i < bounding_boxes.size(); i++) {
-            darknet_ros_msgs::BoundingBox bb = bounding_boxes.at(i);
-            cv::Rect2d bb_rect(bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin);
-            detection_bbs.push_back(bb_rect);
-          }
 
-          /*if(!check){
-          this->tracking_handler_->AddTrackers(
-            cv_bridge::toCvCopy(master_image, sensor_msgs::image_encodings::BGR8)->image,
-            detection_bbs
-          );
-          check = true;
+    if (!this->detection_flag_.empty() && !this->bounding_boxes_matrix_.empty()) {
+      if (this->detection_flag_.front() == 1) {
 
-  		}*/
-
-          for (int i = 0; i < bounding_boxes.size(); i++) {
-            DrawRectAndPublishImage(bounding_boxes[i], master_image);    
-          }
-            //Pops first bounding box information
-          this->bounding_boxes_matrix_.pop();  
-            //pops first frame of image
-          this->video_image_frames_.pop();  
+        //seting item in front of queue to bounding_box
+        std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = this->bounding_boxes_matrix_.front();  
+        sensor_msgs::Image master_image = this->video_image_frames_.front();
+        
+        // Send boxes and image to the tracking system
+        std::vector<cv::Rect2d> detection_bbs;
+        for (int i = 0; i < bounding_boxes.size(); i++) {
+          darknet_ros_msgs::BoundingBox bb = bounding_boxes.at(i);
+          cv::Rect2d bb_rect(bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin);
+          detection_bbs.push_back(bb_rect);
         }
+
+        for (int i = 0; i < bounding_boxes.size(); i++) {
+          DrawRectAndPublishImage(bounding_boxes[i], master_image);    
+        }
+          //Pops first bounding box information
+        this->bounding_boxes_matrix_.pop();  
+          //pops first frame of image
+        this->video_image_frames_.pop();  
       }
     }
   }
