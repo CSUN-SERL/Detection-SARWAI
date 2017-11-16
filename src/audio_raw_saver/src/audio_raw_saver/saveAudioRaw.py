@@ -30,7 +30,7 @@ def audioSaveCallback(data):
   for sample in data.data:
     fileObj.write(sample)
 
-  currentSize += 2 * len(data.data)
+  currentSize += 2 * len(data.data) #writing data for 2 channels
   if(currentSize >= AUDIO_BITRATE * FILE_DURATION):
     os.system("ffmpeg -i " + FILENAME + str(fileNum) + ".mp3 -ac 1 " + FILENAME + str(fileNum) + ".wav")
     #construct and send message
