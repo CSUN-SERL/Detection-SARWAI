@@ -24,14 +24,15 @@ namespace sarwai {
   class VisualDetectionTracker {
 
   public:
+    void TrackFrame(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
+    void AddTrackers(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
     VisualDetectionTracker();
     ~VisualDetectionTracker();
     
   private:
     ros::NodeHandle* nh_;
-    ros::Subscriber information_;
     TrackingAlgorithm tracking_algorithm_;
-    // The primary trackers that log data is pulled from
+
     std::vector<cv::Ptr<cv::Tracker> > trackers_;
     std::vector<cv::Rect2d> tracking_boxes_;
 
@@ -43,19 +44,16 @@ namespace sarwai {
     ros::Publisher visual_detection_bb_;
 
     std::queue<int> detection_flag_;  
-    //Queue hold video frames of type sensor_msgs::Image
     std::queue<sensor_msgs::Image> video_image_frames_; 
-    //queue of bounding box information
     std::queue<std::vector<darknet_ros_msgs::BoundingBox>> bounding_boxes_matrix_;  
 
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
     void ArrayReceived(const darknet_ros_msgs::BoundingBoxes& msg);
     void ObjectDetected(const std_msgs::Int8& msg);
     void Process();
-    void TrackFrame(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
-    void AddTrackers(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
-    bool HasActiveTrackers();
-    bool IsRedundantDetection(cv::Rect2d); //std::vector<cv::Rect2d>
+    bool CheckIfRectMatchesRectVector(cv::Rect2d, std::vector<cv::Rect2d>);
+    float ComputeFractionOfIntersection(cv::Rect2d, cv::Rect2d);
+    float ComputeRectArea(cv::Rect2d);
   };
 }
 

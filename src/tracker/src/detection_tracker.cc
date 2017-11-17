@@ -21,6 +21,19 @@ namespace sarwai {
     this->tracking_algorithm_ = TrackingAlgorithm::MEDIANFLOW;
   }
 
+  void VisualDetectionTracker::ArrayReceived(const darknet_ros_msgs::BoundingBoxes &msg) {
+    this->bounding_boxes_matrix_.push(msg.boundingBoxes);
+  }
+
+  void VisualDetectionTracker::ImageCallback(const sensor_msgs::ImageConstPtr &msg) {
+    this->video_image_frames_.push(*msg);
+    Process();
+  }
+
+  void VisualDetectionTracker::ObjectDetected(const std_msgs::Int8 &msg) {
+    this->detection_flag_.push(msg.data);
+  }
+  
   /*
    * Process controls the process of receiving messages on incoming ROS topics
    * and the publishing of data after running the tracking redundancy detection system
@@ -134,19 +147,6 @@ namespace sarwai {
     }
   }
 
-  void VisualDetectionTracker::ArrayReceived(const darknet_ros_msgs::BoundingBoxes &msg) {
-    this->bounding_boxes_matrix_.push(msg.boundingBoxes);
-  }
-
-  void VisualDetectionTracker::ImageCallback(const sensor_msgs::ImageConstPtr &msg) {
-    this->video_image_frames_.push(*msg);
-    Process();
-  }
-
-  void VisualDetectionTracker::ObjectDetected(const std_msgs::Int8 &msg) {
-    this->detection_flag_.push(msg.data);
-  }
-
   /*
    * CheckIfRectMatchesRecetVector receives a single bounding box and a vector of bounding boxes.
    * It then runs a set of comparison tests beteween the single box and each element of the vector
@@ -154,8 +154,7 @@ namespace sarwai {
    * 
    * It returns true if the bb matches one of the elements in bbs.
    */
-  bool CheckIfRectMatchesRectVector(cv::Rect2d bb, std::vector<cv::Rect2d> bbs) {
-
+  bool VisualDetectionTracker::CheckIfRectMatchesRectVector(cv::Rect2d bb, std::vector<cv::Rect2d> bbs) {
     for (int i = 0; i < bbs.size(); i++) {
       cv::Rect2d vect_bb = bbs.at(i);
       if (ComputeFractionOfIntersection(bb, vect_bb) > 0.8) {
@@ -171,7 +170,7 @@ namespace sarwai {
    * this function returns A_i / (A_a + A_b - 2*A_i) which is a value between 0 to 1.
    * It will return 0 if there is no intersection between rects a and b
    */
-  float ComputeFractionOfIntersection(cv::Rect2d a, cv::Rect2d b) {
+  float VisualDetectionTracker::ComputeFractionOfIntersection(cv::Rect2d a, cv::Rect2d b) {
     float top_left_x = std::max(a.x, b.x);
     float top_left_y = std::max(a.y, b.y);
     float bot_right_x = std::min((a.x + a.width), (b.x + b.width));
@@ -190,7 +189,7 @@ namespace sarwai {
     return fraction_of_intersection;
   }
 
-  float ComputeRectArea(cv::Rect2d a) {
+  float VisualDetectionTracker::ComputeRectArea(cv::Rect2d a) {
     float area = a.width * a.height;
     return area;
   }
