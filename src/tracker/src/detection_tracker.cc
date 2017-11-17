@@ -9,24 +9,129 @@ namespace sarwai {
     this->nh_ = new ros::NodeHandle();
     this->image_frame_sub_ = this->nh_->subscribe(
         "darknet_ros/detection_image", 1000, &VisualDetectionTracker::ImageCallback, this);
-    //subscribes to darknet_ros/bounding_boxes
     this->bounding_box_sub_ = this->nh_->subscribe(
         "darknet_ros/bounding_boxes", 1000, &VisualDetectionTracker::ArrayReceived, this);
-    //subscribes to darknet_ros/found_object
     this->detection_flag_sub_ = this->nh_->subscribe(
         "darknet_ros/found_object", 1000, &VisualDetectionTracker::ObjectDetected, this);
-
     this->visual_detection_bb_ = this->nh_->advertise<darknet_ros_msgs::BoundingBoxes>(
         "visual_detection_bb", 1000);
-
     this->visual_detection_image_ = this->nh_->advertise<sensor_msgs::Image>(
         "visual_detection_image", 1000);
 
-    this->tracking_algorithm_ = TrackingAlgorithm::BOOSTING;
+    this->tracking_algorithm_ = TrackingAlgorithm::MEDIANFLOW;
   }
 
-  VisualDetectionTracker::~VisualDetectionTracker()
-  {
+  /*
+   * Process controls the process of receiving messages on incoming ROS topics
+   * and the publishing of data after running the tracking redundancy detection system
+   */
+  void VisualDetectionTracker::Process() {
+    // This check only lets this function run if there are also elements in the detection flag and bounding box queues
+    if (this->bounding_boxes_matrix_.size() == 0) {
+      // If you aren't ready to process all 3 queues, we have to prune them to make sure they don't get backlogged
+      if (this->video_image_frames_.size() > 0) {
+        this->video_image_frames_.pop();
+      }
+
+      if (this->detection_flag_.size() > 0) {
+        this->detection_flag_.pop();
+      }
+    }
+
+    while (this->video_image_frames_.size() > 0 && this->bounding_boxes_matrix_.size() > 0 && this->detection_flag_.size() > 0) {
+      std::vector<cv::Rect2d> detection_bbs;
+      std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = bounding_boxes_matrix_.front();
+      for (int i = 0; i < bounding_boxes.size(); i++) {
+        darknet_ros_msgs::BoundingBox bb = bounding_boxes.at(i);
+        cv::Rect2d bb_rect(bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin);
+        detection_bbs.push_back(bb_rect);
+      }
+
+      TrackFrame(cv_bridge::toCvCopy(this->video_image_frames_.front(), sensor_msgs::image_encodings::BGR8)->image, detection_bbs);
+
+      this->video_image_frames_.pop();
+      this->bounding_boxes_matrix_.pop();
+      this->detection_flag_.pop();
+    }
+  }
+
+  /*
+   * TrackFrame receives a image and a vector of boxes demarking visual detection.
+   * This is the entry point to the tracking system whose purpose is reducing redundant detections.
+   * 
+   * Upon receiving a new detection, a tracking box is placed on top of the detection box.
+   * With every new frame and new set of detection boxes, the tracking boxes are updated
+   * and compared with the set of detection boxes. If the tracking box is determined to come close to
+   * being the same as a detection box, we conclude the incoming detection box is redundant, 
+   * and we do not need to send it to logging.
+   * 
+   * TODO: Modify TrackFrame to return a vector of bounding boxes to send to logging
+   */
+  void VisualDetectionTracker::TrackFrame(const cv::Mat &image_matrix, std::vector<cv::Rect2d> detect_bbs) {
+    cv::Mat image_copy = image_matrix.clone();
+    cv::Rect2d bb;
+    for (int i = 0; i < this->trackers_.size(); i++) {
+      cv::Ptr<cv::Tracker> tracker = this->trackers_.at(i);
+      bb = this->tracking_boxes_.at(i);
+      if (!CheckIfRectMatchesRectVector(bb, detect_bbs)) {
+        ROS_INFO("deleting tracker");
+        this->trackers_.erase(this->trackers_.begin() + i);
+        this->tracking_boxes_.erase(this->tracking_boxes_.begin() + i);
+        continue;
+      }
+      bool object_tracked = tracker->update(image_copy, bb);
+
+      if (object_tracked) {
+        tracking_boxes_.at(i) = bb;
+        cv::Point top_left = cv::Point(bb.x, bb.y);
+        cv::Point bottom_right = cv::Point(bb.x + bb.width,
+                                          bb.y + bb.height);
+        cv::rectangle(image_copy, bb, 16711808, 10, 143);
+        cv::waitKey(1);
+      }
+      else {
+        ROS_INFO("deleting tracker");
+        this->trackers_.erase(this->trackers_.begin() + i);
+        this->tracking_boxes_.erase(this->tracking_boxes_.begin() + i);
+      }
+    }
+
+    AddTrackers(image_matrix, detect_bbs);
+    cv::imshow("tracking", image_copy);
+  }
+
+  void VisualDetectionTracker::AddTrackers(const cv::Mat &image, std::vector<cv::Rect2d> detection_bbs) {
+    for (int i = 0; i < detection_bbs.size(); i++) {
+      if (!CheckIfRectMatchesRectVector(detection_bbs.at(i), this->tracking_boxes_)) {
+        cv::Ptr<cv::Tracker> new_tracker;
+        switch (this->tracking_algorithm_) {
+          case TrackingAlgorithm::BOOSTING:
+            new_tracker = cv::TrackerBoosting::create();
+            break;
+          case TrackingAlgorithm::MIL:
+            new_tracker = cv::TrackerMIL::create();
+            break;
+          case TrackingAlgorithm::KCF:
+            new_tracker = cv::TrackerKCF::create();
+            break;
+          case TrackingAlgorithm::TLD:
+            new_tracker = cv::TrackerTLD::create();
+            break;
+          case TrackingAlgorithm::MEDIANFLOW:
+            new_tracker = cv::TrackerMedianFlow::create();
+            break;
+          case TrackingAlgorithm::GOTURN:
+            new_tracker = cv::TrackerGOTURN::create();
+            break;
+          default:
+            return;
+        }
+
+        new_tracker->init(image, detection_bbs.at(i));
+        this->trackers_.push_back(new_tracker);
+        this->tracking_boxes_.push_back(detection_bbs.at(i));
+      }
+    }
   }
 
   void VisualDetectionTracker::ArrayReceived(const darknet_ros_msgs::BoundingBoxes &msg) {
@@ -35,129 +140,60 @@ namespace sarwai {
 
   void VisualDetectionTracker::ImageCallback(const sensor_msgs::ImageConstPtr &msg) {
     this->video_image_frames_.push(*msg);
-    process();
+    Process();
   }
 
   void VisualDetectionTracker::ObjectDetected(const std_msgs::Int8 &msg) {
-    //this->detection_flag_.push(msg.data);
+    this->detection_flag_.push(msg.data);
   }
 
-  void VisualDetectionTracker::process() {
-    std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = bounding_boxes_matrix_.front();
-    std::vector<cv::Rect2d> detection_bbs;
+  /*
+   * CheckIfRectMatchesRecetVector receives a single bounding box and a vector of bounding boxes.
+   * It then runs a set of comparison tests beteween the single box and each element of the vector
+   * to determine if the single box is similar (to an extent).
+   * 
+   * It returns true if the bb matches one of the elements in bbs.
+   */
+  bool CheckIfRectMatchesRectVector(cv::Rect2d bb, std::vector<cv::Rect2d> bbs) {
 
-    for (int i = 0; i < bounding_boxes.size(); i++)
-    {
-      darknet_ros_msgs::BoundingBox bb = bounding_boxes.at(i);
-      cv::Rect2d bb_rect(bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin);
-      detection_bbs.push_back(bb_rect);
-    }
-
-    TrackFrame(cv_bridge::toCvCopy(this->video_image_frames_.front(), sensor_msgs::image_encodings::BGR8)->image, detection_bbs);
-    //AddTrackers(cv_bridge::toCvCopy(this->video_image_frames_.front(), sensor_msgs::image_encodings::BGR8)->image, detection_bbs);
-
-    video_image_frames_.pop();
-    bounding_boxes_matrix_.pop();
-  }
-
-  bool VisualDetectionTracker::IsRedundantDetection(cv::Rect2d detection_bb, cv::Rect2d tracking_bbs) {
-    float det_bb_area = detection_bb.width * detection_bb.height;
-    cv::Rect2d tracking_bb = tracking_bbs;
-
-    // Compare detection_bb to all bounding boxes in tracking_bbs
-
-    // AREA DIFFERENCE
-    //float area_difference_percentage = 0.0;
-    float tracking_bb_area = tracking_bb.width * tracking_bb.height;
-
-    if (std::min(det_bb_area, tracking_bb_area) / std::max(det_bb_area, tracking_bb_area) > 0.5) {
-      return false;
-    }
-
-    return true;
-  }
-
-  void VisualDetectionTracker::TrackFrame(const cv::Mat &image_matrix, std::vector<cv::Rect2d> detect_bbs) {
-
-    if (this->trackers_.size() == 0) {
-      AddTrackers(cv_bridge::toCvCopy(this->video_image_frames_.front(), sensor_msgs::image_encodings::BGR8)->image, detect_bbs);
-      //publish
-      ROS_INFO("SENDING");
-      //return;
-    }
-
-    cv::Rect2d bb;
-    for (int i = 0; i < this->trackers_.size(); i++) {
-      ROS_INFO("%d, %d", this->trackers_.size(), i);
-      cv::Mat image_copy = image_matrix.clone();
-      cv::Ptr<cv::Tracker> tracker = this->trackers_.at(i);
-      bb = this->tracking_boxes_.at(i);
-      bool object_tracked = tracker->update(image_copy, bb);
-
-      if (object_tracked) {
-        tracking_boxes_.at(i) = bb;
-        cv::Point top_left = cv::Point(bb.x, bb.y);
-        cv::Point bottom_right = cv::Point(bb.x + bb.width,
-                                          bb.y + bb.height);
-        //ROS_INFO("%f, %f", bb.x, bb.y);
-        cv::rectangle(image_copy, bb, 16711808, 10, 143);
-        cv::imshow("tracking", image_copy);
-        cv::waitKey(1);
-      }
-      else {
-        this->trackers_.erase(this->trackers_.begin() + i);
-        this->tracking_boxes_.erase(this->tracking_boxes_.begin() + i);
-        --i;
-        if (this->trackers_.size() == 0) {
-          break;
-        }
-      }
-
-      if (IsRedundantDetection(detect_bbs.at(i), bb)) {
-        AddTrackers(cv_bridge::toCvCopy(this->video_image_frames_.front(), sensor_msgs::image_encodings::BGR8)->image, detect_bbs);
-        //publish
-        ROS_INFO("SENDING");
+    for (int i = 0; i < bbs.size(); i++) {
+      cv::Rect2d vect_bb = bbs.at(i);
+      if (ComputeFractionOfIntersection(bb, vect_bb) > 0.8) {
+        return true;
       }
     }
+
+    return false;
   }
 
-  void VisualDetectionTracker::AddTrackers(const cv::Mat &image, std::vector<cv::Rect2d> detection_bbs)
-  {
-
-    for (int i = 0; i < detection_bbs.size(); i++) {
-      cv::Ptr<cv::Tracker> new_tracker;
-      switch (this->tracking_algorithm_)
-      {
-      case TrackingAlgorithm::BOOSTING:
-        new_tracker = cv::TrackerBoosting::create();
-        break;
-      case TrackingAlgorithm::MIL:
-        new_tracker = cv::TrackerMIL::create();
-        break;
-      case TrackingAlgorithm::KCF:
-        new_tracker = cv::TrackerKCF::create();
-        break;
-      case TrackingAlgorithm::TLD:
-        new_tracker = cv::TrackerTLD::create();
-        break;
-      case TrackingAlgorithm::MEDIANFLOW:
-        new_tracker = cv::TrackerMedianFlow::create();
-        break;
-      case TrackingAlgorithm::GOTURN:
-        new_tracker = cv::TrackerGOTURN::create();
-        break;
-      default:
-        return;
-      }
-
-      new_tracker->init(image, detection_bbs.at(i));
-      this->trackers_.push_back(new_tracker);
-      this->tracking_boxes_.push_back(detection_bbs.at(i));
+    /*  
+   * Given two areas A_a, A_b and A_i which is the intersection rect of a and b,
+   * this function returns A_i / (A_a + A_b - 2*A_i) which is a value between 0 to 1.
+   * It will return 0 if there is no intersection between rects a and b
+   */
+  float ComputeFractionOfIntersection(cv::Rect2d a, cv::Rect2d b) {
+    float top_left_x = std::max(a.x, b.x);
+    float top_left_y = std::max(a.y, b.y);
+    float bot_right_x = std::min((a.x + a.width), (b.x + b.width));
+    float bot_right_y = std::min((a.y + a.height), (b.y + b.height));
+    
+    // Check and see if the two rects a and b are actually intersecting
+    if (top_left_x >= bot_right_x || top_left_y > bot_right_y) {
+      return 0.0;
     }
+
+    cv::Rect2d intersection(top_left_x, top_left_y, bot_right_x - top_left_x, bot_right_y - top_left_y);
+    
+    float intersection_area = ComputeRectArea(intersection);
+    
+    float fraction_of_intersection = intersection_area / (ComputeRectArea(a) + ComputeRectArea(b) - 2 * intersection_area);
+    return fraction_of_intersection;
   }
 
-  bool VisualDetectionTracker::HasActiveTrackers() {
-    bool hasActive = this->trackers_.size() != 0;
-    return hasActive;
+  float ComputeRectArea(cv::Rect2d a) {
+    float area = a.width * a.height;
+    return area;
   }
+
+  VisualDetectionTracker::~VisualDetectionTracker() {}
 }

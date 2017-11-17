@@ -51,11 +51,11 @@ namespace sarwai {
     void ImageCallback(const sensor_msgs::ImageConstPtr& msg);
     void ArrayReceived(const darknet_ros_msgs::BoundingBoxes& msg);
     void ObjectDetected(const std_msgs::Int8& msg);
-    void process();
+    void Process();
     void TrackFrame(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
     void AddTrackers(const cv::Mat &image_matrix, std::vector<cv::Rect2d>);
     bool HasActiveTrackers();
-    bool IsRedundantDetection(cv::Rect2d detection_bb, cv::Rect2d tracking_bbs); //std::vector<cv::Rect2d>
+    bool IsRedundantDetection(cv::Rect2d); //std::vector<cv::Rect2d>
   };
 }
 
