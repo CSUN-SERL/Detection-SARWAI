@@ -17,6 +17,8 @@ namespace sarwai {
         "visual_detection_bb", 1000);
     this->visual_detection_image_ = this->nh_->advertise<sensor_msgs::Image>(
         "visual_detection_image", 1000);
+    this->visual_detection_flag_ = this->nh_->advertise<std_msgs::Int8>(
+        "visual_detection_flag", 1000);
 
     this->tracking_algorithm_ = TrackingAlgorithm::MEDIANFLOW;
   }
@@ -60,7 +62,16 @@ namespace sarwai {
         detection_bbs.push_back(bb_rect);
       }
 
-      TrackFrame(cv_bridge::toCvCopy(this->video_image_frames_.front(), sensor_msgs::image_encodings::BGR8)->image, detection_bbs);
+      TrackFrame(cv_bridge::toCvCopy(this->video_image_frames_.front(), sensor_msgs::image_encodings::BGR8)->image, detection_bbs, bounding_boxes);
+
+      std_msgs::Int8 msg;
+      darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
+
+      msg.data = this->detection_flag_.front();
+      visual_detection_bb_.publish(out_going_bb);
+      visual_detection_image_.publish(this->video_image_frames_.front());
+      visual_detection_flag_.publish(msg);
+      this->out_going_bb.boundingBoxes.clear();
 
       this->video_image_frames_.pop();
       this->bounding_boxes_matrix_.pop();
@@ -80,7 +91,7 @@ namespace sarwai {
    * 
    * TODO: Modify TrackFrame to return a vector of bounding boxes to send to logging
    */
-  void VisualDetectionTracker::TrackFrame(const cv::Mat &image_matrix, std::vector<cv::Rect2d> detect_bbs) {
+  void VisualDetectionTracker::TrackFrame(const cv::Mat &image_matrix, std::vector<cv::Rect2d> detect_bbs, std::vector<darknet_ros_msgs::BoundingBox> original_bb) {
     cv::Mat image_copy = image_matrix.clone();
     cv::Rect2d bb;
     for (int i = 0; i < this->trackers_.size(); i++) {
@@ -109,11 +120,11 @@ namespace sarwai {
       }
     }
 
-    AddTrackers(image_matrix, detect_bbs);
+    AddTrackers(image_matrix, detect_bbs, original_bb);
     cv::imshow("tracking", image_copy);
   }
 
-  void VisualDetectionTracker::AddTrackers(const cv::Mat &image, std::vector<cv::Rect2d> detection_bbs) {
+  void VisualDetectionTracker::AddTrackers(const cv::Mat &image, std::vector<cv::Rect2d> detection_bbs, std::vector<darknet_ros_msgs::BoundingBox> original_bb) {
     for (int i = 0; i < detection_bbs.size(); i++) {
       if (!CheckIfRectMatchesRectVector(detection_bbs.at(i), this->tracking_boxes_)) {
         cv::Ptr<cv::Tracker> new_tracker;
@@ -143,6 +154,8 @@ namespace sarwai {
         new_tracker->init(image, detection_bbs.at(i));
         this->trackers_.push_back(new_tracker);
         this->tracking_boxes_.push_back(detection_bbs.at(i));
+        darknet_ros_msgs::BoundingBox temp = original_bb.at(i);
+        this->out_going_bb.boundingBoxes.push_back(temp); //Testing
       }
     }
   }
