@@ -35,7 +35,8 @@ namespace sarwai {
     //Set image info to custom message detection_msgs::ProcessedVisualDetection
     outgoing_msg.detection.image = image; 
     //Set bouding box info to custom message detection_msgs::ProcessedVisualDetection
-    outgoing_msg.detection.bounding_box = box; 
+    outgoing_msg.detection.bounding_box = box;
+    ROS_INFO("Box info: x = %ld, xm = %ld, y = %ld, ym = %ld", box.xmin, box.xmax, box.ymin, box.ymax);
     
     outgoing_msg.point_cloud = cloud;
     //Publishes to topic
@@ -44,7 +45,8 @@ namespace sarwai {
     //Recives images from topic
   void ImageBoundingBoxMerger::ImageCallback(const detection_msgs::PointCloudImageConstPtr& msg) {  
     //IMage is pushes into queue 
-    this->video_image_frames_.push(msg->image);   
+    this->video_image_frames_.push(msg->image);
+    ROS_INFO("Image callback");
     RunImageProcess(msg->cloud);
   }
 
@@ -62,6 +64,7 @@ namespace sarwai {
           std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = this->bounding_boxes_.front();  
           sensor_msgs::Image master_image = this->video_image_frames_.front();
           for (int i = 0; i < bounding_boxes.size(); i++) {
+            ROS_INFO("Publishing box with %ld, %ld, %ld, %ld", bounding_boxes[i].xmin,bounding_boxes[i].xmax,bounding_boxes[i].ymin,bounding_boxes[i].ymax);
             DrawRectAndPublishImage(bounding_boxes[i], master_image, cloud);    
           }
             //Pops first bounding box information
@@ -73,14 +76,17 @@ namespace sarwai {
     }
   }
     //gets data from topic and pushes into detection_flag queue
-  void ImageBoundingBoxMerger::ObjectDetected(const std_msgs::Int8& msg) { 
+  void ImageBoundingBoxMerger::ObjectDetected(const std_msgs::Int8& msg) {
+    //ROS_INFO("Object detected");
     this->detection_flag_.push(msg.data); //pushes data to queue
   }
     // gets bounding box data from the top and pushes into bounding_box queue
-  void ImageBoundingBoxMerger::ArrayReceived(const darknet_ros_msgs::BoundingBoxes& msg) {  
+  void ImageBoundingBoxMerger::ArrayReceived(const darknet_ros_msgs::BoundingBoxes& msg) {
+    //ROS_INFO("Array received");
     std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = msg.boundingBoxes;
     for (int i = 0; i < bounding_boxes.size(); ++i) {
      //Processes frames only if they are labeled person
+     ROS_INFO("Box receiving info: %ld, %ld, %ld, %ld", bounding_boxes[i].xmin, bounding_boxes[i].xmax,bounding_boxes[i].ymin,bounding_boxes[i].ymax);
       if (bounding_boxes[i].Class != "person") {    
         bounding_boxes.erase(bounding_boxes.begin()+i);
       }

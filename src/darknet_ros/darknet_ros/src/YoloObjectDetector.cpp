@@ -159,7 +159,7 @@ void YoloObjectDetector::init() {
   bool detectionPointCloudLatch;
 
   nodeHandle_.param("subscribers/camera_reading/topic", cameraTopicName, std::string("/camera/image_raw")); /**********************************************/
-  nodeHandle_.param("subscribers/pointcloud_reading/pointcloud_topic", pointCloudTopicName, std::string("/stereo/points2"));
+  nodeHandle_.param("subscribers/pointcloud_reading/topic", pointCloudTopicName, std::string("/stereo/points2"));
   nodeHandle_.param("subscribers/camera_reading/queue_size", cameraQueueSize, 1);
   nodeHandle_.param("subscribers/pointcloud_reading/queue_size", pointCloudQueueSize, 1000);
   nodeHandle_.param("publishers/object_detector/topic", objectDetectorTopicName, std::string("found_object"));

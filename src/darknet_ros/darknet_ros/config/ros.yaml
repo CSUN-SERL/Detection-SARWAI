@@ -1,12 +1,12 @@
 subscribers:
 
   camera_reading:
-    topic: /webcam/image_raw
+    topic: /camera/depth/image_raw
     queue_size: 1
 
   pointcloud_reading:
-    topic: /stereo/points2
-    queue_size: 1000
+    topic: /camera/depth/points
+    queue_size: 1
 
 actions:
 
@@ -29,10 +29,10 @@ publishers:
     topic: /darknet_ros/detection_image
     queue_size: 1
     latch: true
-  
+
   pointcloud_image:
     topic: /darknet_ros/pointcloud_detection_image
-    queue_size: 1000
+    queue_size: 1
     latch: true
 
 image_view:
