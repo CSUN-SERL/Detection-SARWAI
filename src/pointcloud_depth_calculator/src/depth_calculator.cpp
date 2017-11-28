@@ -65,7 +65,7 @@ namespace sarwai {
     // viz.spinOnce();
     // pcl_sleep(0.01);
 
-    float distanceAverage = 0;
+    double distanceAverage = 0;
     unsigned pointTotal = 0;
     for(int y = box.ymin; y < box.ymax; y++) {
       for(int x = box.xmin; x < box.xmax; x++) {
@@ -76,7 +76,7 @@ namespace sarwai {
           pcl::PointWithRange currentPoint = rangeImage.getPoint(x, y);
           //ROS_INFO("done getting point");
 
-          float dist = sqrt(pow(currentPoint.x, 2) + pow(currentPoint.y, 2) + pow(currentPoint.z, 2));
+          double dist = sqrt(pow(currentPoint.x, 2) + pow(currentPoint.y, 2) + pow(currentPoint.z, 2));
           
           if(dist > 0) {
             //ROS_INFO("dist = %lf",dist);
@@ -92,7 +92,7 @@ namespace sarwai {
     distanceAverage /= pointTotal;
 
     detection_msgs::ProcessedVisualDetection outmsg = msg->detection;
-    outmsg.bounding_box.depth = distanceAverage;
+    outmsg.bounding_box.depth = (float)distanceAverage;
     pub_.publish(outmsg);
   }
 
