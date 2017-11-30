@@ -12,6 +12,9 @@
 #include "sensor_msgs/Image.h"
 #include "detection_msgs/ProcessedVisualDetection.h"
 
+#include "face_classifier_manager.h"
+#include "detection_frame_id.h"
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking/tracking.hpp>
 #include <opencv2/tracking/tracker.hpp>
@@ -34,8 +37,11 @@ namespace sarwai {
     TrackingAlgorithm tracking_algorithm_;
     darknet_ros_msgs::BoundingBoxes out_going_bb;
 
+    FaceClassifierManager face_manager_;
+
     std::vector<cv::Ptr<cv::Tracker> > trackers_;
     std::vector<cv::Rect2d> tracking_boxes_;
+    std::vector<DetectionFrameId> detection_ids_;
 
     ros::Subscriber image_frame_sub_;
     ros::Subscriber bounding_box_sub_;
@@ -56,6 +62,8 @@ namespace sarwai {
     bool CheckIfRectMatchesRectVector(cv::Rect2d, std::vector<cv::Rect2d>);
     float ComputeFractionOfIntersection(cv::Rect2d, cv::Rect2d);
     float ComputeRectArea(cv::Rect2d);
+    void MarkDetectionComplete(int index);
+    void DeleteTracker(int index);
   };
 }
 

@@ -28,9 +28,17 @@ include_directories(
 add_executable(
   ${PROJECT_NAME}_node
   src/image_tracker.cpp
-  src/detection_tracker.cc)
+  src/detection_tracker.cc
+  src/face_classifier_manager.cc
+  src/face_identifier_model.cc
+  src/detection_frame_id.cc
+)
 
-add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(
+  ${PROJECT_NAME}_node
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
 
 target_link_libraries(${PROJECT_NAME}_node
   "/usr/local/lib/libopencv_tracking.so"
