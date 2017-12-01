@@ -9,6 +9,7 @@
 #include <opencv2/face.hpp>
 
 #include "detection_frame_id.h"
+#include "detection_similarity_association.h"
 #include "face_identifier_model.h"
 
 namespace sarwai {
@@ -21,11 +22,11 @@ namespace sarwai {
 
     static std::string GenerateImageLabel(int detection_id, int nth_frame, int classification_id);
 
-    std::vector<cv::Rect> RunFacialDetection(cv::Mat, DetectionFrameId, cv::Rect);
+    std::vector<cv::Rect> RunFacialDetection(cv::Mat, DetectionFrameId*, cv::Rect);
 
     void DeactivateModel(int detection_id);
 
-    void FindDoppelganger(cv::Mat, cv::Rect);
+    DetectionSimilarityAssociation FindDoppelganger(cv::Mat, cv::Rect, DetectionFrameId*);
 
     private:
     

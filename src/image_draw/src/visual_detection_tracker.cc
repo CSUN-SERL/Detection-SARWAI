@@ -73,7 +73,7 @@ namespace sarwai {
   }
 
   void VisualDetectionTracker::AddTrackers(const cv::Mat &image, std::vector<cv::Rect2d> detection_bbs) {
-    this->tracking_mtx_.lock();
+    // this->tracking_mtx_.lock();
     for (int i = 0; i < this->tracking_boxes_.size(); i++) {
       if (!IsRedundantDetection(this->tracking_boxes_.at(i), detection_bbs)) {
         this->trackers_.erase(this->trackers_.begin() + i);
@@ -113,7 +113,7 @@ namespace sarwai {
 
     }
 
-    this->tracking_mtx_.unlock();
+    // this->tracking_mtx_.unlock();
   }
 
   bool VisualDetectionTracker::HasActiveTrackers() {

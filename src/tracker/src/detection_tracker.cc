@@ -2,17 +2,18 @@
 #include "ros/ros.h"
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
+#include <stdlib.h>
 
 namespace sarwai {
 
   VisualDetectionTracker::VisualDetectionTracker() {
     this->nh_ = new ros::NodeHandle();
     this->image_frame_sub_ = this->nh_->subscribe(
-        "darknet_ros/detection_image", 1000, &VisualDetectionTracker::ImageCallback, this);
+        "darknet_ros/detection_image", 1, &VisualDetectionTracker::ImageCallback, this);
     this->bounding_box_sub_ = this->nh_->subscribe(
-        "darknet_ros/bounding_boxes", 1000, &VisualDetectionTracker::ArrayReceived, this);
+        "darknet_ros/bounding_boxes", 1, &VisualDetectionTracker::ArrayReceived, this);
     this->detection_flag_sub_ = this->nh_->subscribe(
-        "darknet_ros/found_object", 1000, &VisualDetectionTracker::ObjectDetected, this);
+        "darknet_ros/found_object", 1, &VisualDetectionTracker::ObjectDetected, this);
     this->visual_detection_bb_ = this->nh_->advertise<darknet_ros_msgs::BoundingBoxes>(
         "visual_detection_bb", 1000);
     this->visual_detection_image_ = this->nh_->advertise<sensor_msgs::Image>(
@@ -71,6 +72,8 @@ namespace sarwai {
           sensor_msgs::image_encodings::BGR8)->image,
         detection_bbs, bounding_boxes);
 
+
+      // Send data along in the ROS node chain
       std_msgs::Int8 msg;
       darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
 
@@ -103,36 +106,53 @@ namespace sarwai {
 
     cv::Mat image_copy = image_matrix.clone();
     cv::Rect2d bb;
-    for (int i = 0; i < this->trackers_.size(); i++) {
-      cv::Ptr<cv::Tracker> tracker = this->trackers_.at(i);
-      bb = this->tracking_boxes_.at(i);
+    for (int i = 0; i < this->active_detections_.size(); i++) {
+    
 
-      if (!CheckIfRectMatchesRectVector(bb, detect_bbs)) {
+      if (!CheckIfRectMatchesRectVector(active_detections_[i].bb, detect_bbs)) {
         // There is no longer a detection box found with this tracking box
         MarkDetectionComplete(i);
         continue;
       }
-      bool object_tracked = tracker->update(image_copy, bb);
+
+      bool object_tracked = active_detections_[i].tracker->update(image_copy, bb);
 
       if (object_tracked) {
-        this->detection_ids_.at(i).IncFrame();
-        tracking_boxes_.at(i) = bb;
-        cv::Point top_left = cv::Point(bb.x, bb.y);
-        cv::Point bottom_right = cv::Point(bb.x + bb.width, bb.y + bb.height);
-        std::vector<cv::Rect> faces = this->face_manager_.RunFacialDetection(
-          image_copy, this->detection_ids_.at(i), bb);
+        active_detections_[i].id->IncFrame();
+        active_detections_[i].bb = bb;
+
+
+        if (active_detections_[i].id->FrameId() % 15) {
+        // Facial recognition system
+          std::vector<cv::Rect> faces = this->face_manager_.RunFacialDetection(
+          image_copy, active_detections_[i].id, active_detections_[i].bb);
+
+          for (int f = 0; f < faces.size(); f++) {
+            cv::rectangle(image_copy, faces.at(f),
+                active_detections_[i].id->BoxColor(), 5, 5);
+          }
+        }
         
-        this->face_manager_.FindDoppelganger(image_copy, bb);
-        
-        for (int f = 0; f < faces.size(); f++) {
-          cv::rectangle(image_copy, faces.at(f), cv::Scalar(0,255,0), 5, 30);
+
+        if (active_detections_[i].id->FrameId() % 30) {
+          DetectionSimilarityAssociation result = this->face_manager_.FindDoppelganger(
+            image_copy, active_detections_[i].bb, active_detections_[i].id);
+          ROS_INFO("result confidence: %f", result.confidence);
+          if (result.confidence > 65) {
+            ROS_INFO("%d == %d confidence: %f",
+              result.to_be_associated->DetectionId(),
+              result.compared_against->DetectionId(),
+              result.confidence);
+
+          }
         }
 
-        cv::rectangle(image_copy, bb, cv::Scalar(255,0,0), 10, 143);
+        cv::rectangle(image_copy, active_detections_[i].bb, active_detections_[i].id->BoxColor(), 10, 143);
         cv::waitKey(1);
       }
       else {
         // The tracking algorithm has failed to continue tracking the given object
+        ROS_INFO("Tracker failed");
         MarkDetectionComplete(i);
       }
     }
@@ -145,8 +165,13 @@ namespace sarwai {
       std::vector<cv::Rect2d> detection_bbs,
       std::vector<darknet_ros_msgs::BoundingBox> original_bb) {
 
+    std::vector<cv::Rect2d> active_bbs;
+    for (int i = 0; i < active_detections_.size(); i++) {
+      active_bbs.push_back(active_detections_[i].bb);
+    }
+
     for (int i = 0; i < detection_bbs.size(); i++) {
-      if (!CheckIfRectMatchesRectVector(detection_bbs.at(i), this->tracking_boxes_)) {
+      if (!CheckIfRectMatchesRectVector(detection_bbs[i], active_bbs)) {
         // At this point, we can assume that we see a new, unique detection
         cv::Ptr<cv::Tracker> new_tracker;
         switch (this->tracking_algorithm_) {
@@ -172,12 +197,25 @@ namespace sarwai {
             return;
         }
 
-        new_tracker->init(image, detection_bbs.at(i));
-        this->trackers_.push_back(new_tracker);
-        this->tracking_boxes_.push_back(detection_bbs.at(i));
 
-        DetectionFrameId new_detection_id;
-        this->detection_ids_.push_back(new_detection_id);
+        new_tracker->init(image, detection_bbs.at(i));
+        // this->trackers_.push_back(new_tracker);
+        // this->tracking_boxes_.push_back(detection_bbs.at(i));
+
+        DetectionFrameId* new_detection_id = new DetectionFrameId();
+        int blue_color = rand() % 255;
+        int red_color = rand() % 255;
+        int green_color = rand() % 255;
+        new_detection_id->SetBoxColor(cv::Scalar(blue_color, red_color, green_color));
+        // this->detection_ids_vect_indexes_.push_back(detection_ids_vect_indexes_.size());
+        // this->detection_ids_.push_back(new_detection_id);
+
+        DetectionAggregation detection;
+        detection.tracker = new_tracker;
+        detection.bb = detection_bbs[i];
+        detection.id = new_detection_id;
+
+        active_detections_.push_back(detection);
 
         darknet_ros_msgs::BoundingBox temp = original_bb.at(i);
         this->out_going_bb.boundingBoxes.push_back(temp); //Testing
@@ -186,16 +224,9 @@ namespace sarwai {
   }
 
   void VisualDetectionTracker::MarkDetectionComplete(int i) {
-    int detection_model_id = this->detection_ids_.at(i).DetectionId();
-    this->face_manager_.DeactivateModel(detection_model_id);
-    DeleteTracker(i);
-  }
-
-  void VisualDetectionTracker::DeleteTracker(int i) {
-    ROS_INFO("deleting tracker");
-    this->trackers_.erase(this->trackers_.begin() + i);
-    this->tracking_boxes_.erase(this->tracking_boxes_.begin() + i);
-    this->detection_ids_.erase(this->detection_ids_.begin() + i);
+    face_manager_.DeactivateModel(active_detections_[i].id->DetectionId());
+    past_detections_.push_back(active_detections_[i]);
+    active_detections_.erase(active_detections_.begin() + i);
   }
 
   /*
@@ -245,5 +276,9 @@ namespace sarwai {
     return area;
   }
 
-  VisualDetectionTracker::~VisualDetectionTracker() { }
+  VisualDetectionTracker::~VisualDetectionTracker() {
+    for (auto e : detection_ids_) {
+      delete e;
+    }
+  }
 }

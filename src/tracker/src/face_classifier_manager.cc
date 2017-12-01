@@ -15,11 +15,29 @@ FaceClassifierManager::~FaceClassifierManager() {
 }
 
 std::vector<cv::Rect> FaceClassifierManager::RunFacialDetection(
-  cv::Mat image, DetectionFrameId image_id, cv::Rect roi) {
+    cv::Mat image, DetectionFrameId* image_id, cv::Rect roi) {
 
+  if (roi.x <= 0) {
+    roi.x = 1;
+  }
+
+  if (roi.y <= 0) {
+    roi.y = 1;
+  }
+
+  if (roi.x + roi.width > image.cols) {
+    roi.width = image.cols - roi.x - 1;
+  }
+
+  if (roi.y + roi.height > image.rows) {
+    roi.height = image.rows - roi.y - 1;
+  }
+  
+  cv::Mat cropped_image(image, roi);
+  cv::Mat cloned_cropped_image = cropped_image.clone();
   std::vector<cv::Rect> classified_faces;
   this->front_face_cascade_->detectMultiScale(
-    image,
+    image(roi).clone(),
     classified_faces,
     1.1,
     3,
@@ -27,15 +45,15 @@ std::vector<cv::Rect> FaceClassifierManager::RunFacialDetection(
     cv::Size(50,50)
   );
 
-  if (face_identifiers_.find(image_id.DetectionId()) == face_identifiers_.end()) {
+  if (face_identifiers_.find(image_id->DetectionId()) == face_identifiers_.end()) {
     // New detection
-    face_identifiers_[image_id.DetectionId()];
+    face_identifiers_[image_id->DetectionId()];
   }
   
-  FaceIdentifierModel receiving_model = face_identifiers_[image_id.DetectionId()];
+  FaceIdentifierModel receiving_model = face_identifiers_[image_id->DetectionId()];
 
   receiving_model.ReceiveImage(image, image_id, roi, classified_faces);
-  face_identifiers_[image_id.DetectionId()] = receiving_model;
+  face_identifiers_[image_id->DetectionId()] = receiving_model;
 
   return classified_faces;
 }
@@ -57,16 +75,23 @@ std::string FaceClassifierManager::GenerateImageLabel(
     return image_label;
 }
 
-void FaceClassifierManager::FindDoppelganger(cv::Mat image, cv::Rect roi) {
+DetectionSimilarityAssociation FaceClassifierManager::FindDoppelganger(cv::Mat image,
+    cv::Rect roi, DetectionFrameId* detection_id) {
+  
+  DetectionSimilarityAssociation most_similar;
   std::map<int, FaceIdentifierModel>::iterator iter;
   for(iter = face_identifiers_.begin(); iter != face_identifiers_.end(); ++iter) {
     int key =  iter->first;
     FaceIdentifierModel model = face_identifiers_[key];
     if (model.IsDoneTraining()) {
-      model.RunFacePrediction(image);
+      DetectionSimilarityAssociation association = model.RunFacePrediction(image, detection_id);
+      if (association.confidence > most_similar.confidence) {
+        most_similar = association;
+      }
     }
-    
   }
+
+  return most_similar;
 }
 
 }

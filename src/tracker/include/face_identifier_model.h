@@ -11,6 +11,7 @@
 
 
 #include "detection_frame_id.h"
+#include "detection_similarity_association.h"
 
 namespace sarwai {
 
@@ -19,11 +20,11 @@ namespace sarwai {
     FaceIdentifierModel();
     // ~FaceIdentifierModel();
 
-    void ReceiveImage(cv::Mat, DetectionFrameId, cv::Rect roi, std::vector<cv::Rect> faces);
+    void ReceiveImage(cv::Mat, DetectionFrameId*, cv::Rect roi, std::vector<cv::Rect> faces);
     void DoneReceivingImages();
     
     // double GetSimilarity(cv::Mat, cv::Rect roi);
-    void RunFacePrediction(cv::Mat);
+    DetectionSimilarityAssociation RunFacePrediction(cv::Mat, DetectionFrameId*);
 
     bool IsDoneTraining();
 
@@ -39,9 +40,11 @@ namespace sarwai {
     std::vector<cv::Mat> images_;
     std::vector<cv::Rect> initial_rois_;
     std::vector<std::vector<cv::Rect> > faces_per_image_;
-    std::vector<DetectionFrameId> frame_ids_;
+    std::vector<DetectionFrameId*> frame_ids_;
 
+    std::map<int, DetectionFrameId*> frame_id_map_;
     std::map<int, std::string> label_map_;
+    std::vector<int> labels_;
   };
 }
 
