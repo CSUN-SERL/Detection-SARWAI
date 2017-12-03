@@ -26,17 +26,34 @@ include_directories(
 )
 
 add_executable(
-  ${PROJECT_NAME}_node
-  src/image_tracker.cpp
-  src/detection_tracker.cc
+  detection_comparer_node
+  src/detection_comparer_node.cc
+  src/detection_comparer.cc
   src/face_classifier_manager.cc
   src/face_identifier_model.cc
   src/detection_frame_id.cc
 )
 
 add_dependencies(
+  detection_comparer_node
+  ${catkin_EXPORTED_TARGETS}
+)
+
+target_link_libraries(
+  detection_comparer_node
+  ${catkin_LIBRARIES}
+)
+
+add_executable(
+  tracker_node
+  src/image_tracker.cpp
+  src/detection_tracker.cc
+  src/detection_frame_id.cc
+)
+
+add_dependencies(
   ${PROJECT_NAME}_node
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  # ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
 

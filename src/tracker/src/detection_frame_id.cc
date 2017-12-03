@@ -10,6 +10,13 @@ namespace sarwai {
     nth_frame_ = 0;
   }
 
+  DetectionFrameId::DetectionFrameId(int existing_id,
+      int existing_frame_id) {
+
+    detection_id_ = existing_id;
+    nth_frame_ = existing_frame_id;
+  }
+
   // DetectionFrameId& DetectionFrameId::operator=(const DetectionFrameId& frame_id) {
   //   this->detection_id_ = frame_id.detection_id_;
   //   this->nth_frame_ = frame_id.nth_frame_;

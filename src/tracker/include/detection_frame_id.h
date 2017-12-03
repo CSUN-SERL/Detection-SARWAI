@@ -8,6 +8,7 @@ namespace sarwai {
   class DetectionFrameId {
     public:
     DetectionFrameId();
+    DetectionFrameId(int existing_id, int existing_frame_id);
     // DetectionFrameId& operator=(const DetectionFrameId&);
     int DetectionId();
     int FrameId();

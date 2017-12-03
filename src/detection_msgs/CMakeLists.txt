@@ -21,6 +21,10 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    ImageBoundingBox.msg
    ProcessedVisualDetection.msg
+   DetectionId.msg
+   Rect.msg
+   DetectionIdImage.msg
+   DetectionMatch.msg
  )
 
 ## Generate added messages and services with any dependencies listed here

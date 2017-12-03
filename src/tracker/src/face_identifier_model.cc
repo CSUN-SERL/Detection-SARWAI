@@ -71,6 +71,8 @@ namespace sarwai {
           // Concert to grey scale
           cv::Mat greyMat;
           cv::cvtColor(copied_cropped_image, greyMat, cv::COLOR_BGR2GRAY);        
+          cv::imshow("training on", greyMat);
+          cv::waitKey(1);
           face_images.push_back(greyMat);
 
           str_label = FaceClassifierManager::GenerateImageLabel(

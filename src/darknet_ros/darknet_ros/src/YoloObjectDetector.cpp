@@ -186,7 +186,7 @@ void YoloObjectDetector::init() {
   if(viewImage_ && !darknetImageViewer_) {
     cv::namedWindow(opencvWindow_, cv::WINDOW_NORMAL);
     cv::moveWindow(opencvWindow_, 0, 0);
-    cv::resizeWindow(opencvWindow_, 1352, 1013);
+    cv::resizeWindow(opencvWindow_, 500, 500);
   }
 }
 
