@@ -35,15 +35,28 @@ std::vector<cv::Rect> FaceClassifierManager::RunFacialDetection(
   
   cv::Mat cropped_image(image, roi);
   cv::Mat cloned_cropped_image = cropped_image.clone();
+  roi.x = 1;
+  roi.y = 1;
   std::vector<cv::Rect> classified_faces;
+  cv::rectangle(cloned_cropped_image, roi, cv::Scalar(0,255,0), 5,5);
+  cv::imshow("image before factial detection", cloned_cropped_image);
+  cv::waitKey(1);
   this->front_face_cascade_->detectMultiScale(
-    image(roi).clone(),
+    cloned_cropped_image,
     classified_faces,
     1.1,
     3,
     0,
     cv::Size(50,50)
   );
+
+  for (int i = 0; i < classified_faces.size(); i++) {
+    ROS_INFO("x,y: %d, %d", classified_faces[i].x, classified_faces[i].y);
+    ROS_INFO("width, height: %d, %d", classified_faces[i].width, classified_faces[i].height);
+    cv::rectangle(cloned_cropped_image, classified_faces[i], cv::Scalar(0,0,255), 10,10);
+    cv::imshow("freshly detected faces", cloned_cropped_image);
+    cv::waitKey(1);
+  }
 
   if (face_identifiers_.find(image_id->DetectionId()) == face_identifiers_.end()) {
     // New detection
@@ -52,7 +65,7 @@ std::vector<cv::Rect> FaceClassifierManager::RunFacialDetection(
   
   FaceIdentifierModel receiving_model = face_identifiers_[image_id->DetectionId()];
 
-  receiving_model.ReceiveImage(image, image_id, roi, classified_faces);
+  receiving_model.ReceiveImage(cloned_cropped_image, image_id, roi, classified_faces);
   face_identifiers_[image_id->DetectionId()] = receiving_model;
 
   return classified_faces;
