@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   darknet_ros_msgs
   rospy
   detection_msgs
-  OpenCV REQUIRED
+  #OpenCV REQUIRED
 )
 
 catkin_package(
