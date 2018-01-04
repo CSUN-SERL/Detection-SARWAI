@@ -51,8 +51,6 @@ std::vector<cv::Rect> FaceClassifierManager::RunFacialDetection(
   );
 
   for (int i = 0; i < classified_faces.size(); i++) {
-    ROS_INFO("x,y: %d, %d", classified_faces[i].x, classified_faces[i].y);
-    ROS_INFO("width, height: %d, %d", classified_faces[i].width, classified_faces[i].height);
     cv::rectangle(cloned_cropped_image, classified_faces[i], cv::Scalar(0,0,255), 10,10);
     cv::imshow("freshly detected faces", cloned_cropped_image);
     cv::waitKey(1);
@@ -91,14 +89,52 @@ std::string FaceClassifierManager::GenerateImageLabel(
 DetectionSimilarityAssociation FaceClassifierManager::FindDoppelganger(cv::Mat image,
     cv::Rect roi, DetectionFrameId* detection_id) {
   
+  cv::imshow("finddoppleganger", image);
+  if (roi.x <= 0) {
+    roi.x = 1;
+  }
+
+  if (roi.y <= 0) {
+    roi.y = 1;
+  }
+
+  if (roi.x + roi.width > image.cols) {
+    roi.width = image.cols - roi.x - 1;
+  }
+
+  if (roi.y + roi.height > image.rows) {
+    roi.height = image.rows - roi.y - 1;
+  }
+
+  roi.x = 1;
+  roi.y = 1;
+  cv::Mat cropped_image(image, roi);
+  cv::Mat cloned_cropped_image = cropped_image.clone();
+  std::vector<cv::Rect> classified_faces;
+  this->front_face_cascade_->detectMultiScale(
+    cloned_cropped_image,
+    classified_faces,
+    1.1,
+    3,
+    0,
+    cv::Size(50,50)
+  );
+
   DetectionSimilarityAssociation most_similar;
+  most_similar.confidence = 1000000;
+  if (classified_faces.size() == 0) {
+    return most_similar;
+  }
+
   std::map<int, FaceIdentifierModel>::iterator iter;
-  for(iter = face_identifiers_.begin(); iter != face_identifiers_.end(); ++iter) {
+  for (iter = face_identifiers_.begin(); iter != face_identifiers_.end(); ++iter) {
     int key =  iter->first;
     FaceIdentifierModel model = face_identifiers_[key];
     if (model.IsDoneTraining()) {
-      DetectionSimilarityAssociation association = model.RunFacePrediction(image, detection_id);
-      if (association.confidence > most_similar.confidence) {
+      cv::Mat face_image(cloned_cropped_image, classified_faces[0]);
+      cv::Mat cloned_face_image = face_image.clone();
+      DetectionSimilarityAssociation association = model.RunFacePrediction(cloned_face_image, detection_id);
+      if (association.confidence < most_similar.confidence) {
         most_similar = association;
       }
     }

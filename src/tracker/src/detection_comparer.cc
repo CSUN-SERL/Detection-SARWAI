@@ -34,7 +34,7 @@ namespace sarwai {
       DetectionSimilarityAssociation face_assoc = face_comparer_.FindDoppelganger(
           image, roi, detection_id);
       
-      if (face_assoc.confidence > 170) {
+      if (face_assoc.confidence != 0.0 && face_assoc.confidence < 115) {
         ROS_INFO("%d == %d confidence: %f", face_assoc.compared_against->DetectionId(),
             face_assoc.to_be_associated->DetectionId(), face_assoc.confidence);
 

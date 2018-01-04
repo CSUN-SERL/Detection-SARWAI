@@ -25,7 +25,7 @@ namespace sarwai {
     this->visual_detection_flag_ = this->nh_->advertise<std_msgs::Int8>(
         "visual_detection_flag", 1000);
     this->detection_id_image_pub_ = nh_->advertise<detection_msgs::DetectionIdImage>(
-        "labeled_detection_images", 1000);
+        "labeled_detection_images", 100);
 
     this->tracking_algorithm_ = TrackingAlgorithm::BOOSTING;
   }

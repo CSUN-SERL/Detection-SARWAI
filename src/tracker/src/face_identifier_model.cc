@@ -29,6 +29,8 @@ namespace sarwai {
     double confidence;
     cv::Mat greyImage;
     cv::cvtColor(image, greyImage, cv::COLOR_BGR2GRAY);      
+    cv::imshow("grey face", greyImage);
+    cv::waitKey(1);
     this->similarity_model_->predict(greyImage, label, confidence);
     association.compared_against = frame_id_map_[label];
     association.confidence = confidence;
