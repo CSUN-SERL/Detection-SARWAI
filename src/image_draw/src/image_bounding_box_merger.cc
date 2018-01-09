@@ -29,13 +29,14 @@ namespace sarwai {
   }
   
   void ImageBoundingBoxMerger::PublishMergedData(
-    sensor_msgs::Image image, darknet_ros_msgs::BoundingBox box, const sensor_msgs::PointCloud2& cloud
+    sensor_msgs::Image image, darknet_ros_msgs::BoundingBox box, const sensor_msgs::PointCloud2& cloud, unsigned robotId
   ) {
     detection_msgs::DetectionPointCloud outgoing_msg;
     //Set image info to custom message detection_msgs::ProcessedVisualDetection
     outgoing_msg.detection.image = image; 
     //Set bouding box info to custom message detection_msgs::ProcessedVisualDetection
     outgoing_msg.detection.bounding_box = box;
+    outgoing_msg.detection.robotId = robotId;
     ROS_INFO("Box info: x = %ld, xm = %ld, y = %ld, ym = %ld", box.xmin, box.xmax, box.ymin, box.ymax);
     
     outgoing_msg.point_cloud = cloud;
@@ -56,7 +57,6 @@ namespace sarwai {
   //void ImageBoundingBoxMerger::RunImageProcess(const sensor_msgs::PointCloud2& cloud) {
   void ImageBoundingBoxMerger::RunImageProcess(const detection_msgs::CompiledMessageConstPtr& msg) {
     //Process only if detection_flag_ queue and video_imag queue is not empty
-            DrawRectAndPublishImage(bounding_boxes[i], master_image, cloud);    
     // if (
     //     !this->detection_flag_.empty() &&       
     //     !this->video_image_frames_.empty()
@@ -72,8 +72,10 @@ namespace sarwai {
     //sensor_msgs::Image master_image = this->video_image_frames_.front();
     sensor_msgs::Image master_image = msg->image;
     sensor_msgs::PointCloud2 cloud = msg->cloud;
+    unsigned robotId = msg->robotId;
     for (int i = 0; i < bounding_boxes.size(); i++) {
       ROS_INFO("Publishing box with %ld, %ld, %ld, %ld", bounding_boxes[i].xmin,bounding_boxes[i].xmax,bounding_boxes[i].ymin,bounding_boxes[i].ymax);
+      DrawRectAndPublishImage(bounding_boxes[i], master_image, cloud, robotId);    
     }
       //Pops first bounding box information
     //this->bounding_boxes_.pop();  
@@ -104,7 +106,7 @@ namespace sarwai {
   // }
     // Function draws box around the detected image
   void ImageBoundingBoxMerger::DrawRectAndPublishImage( 
-    const darknet_ros_msgs::BoundingBox &box, const sensor_msgs::Image &image, const sensor_msgs::PointCloud2& cloud
+    const darknet_ros_msgs::BoundingBox &box, const sensor_msgs::Image &image, const sensor_msgs::PointCloud2& cloud, unsigned robotId
   ) {
     // Create a value copy of the image
     sensor_msgs::Image image_copy = image;
@@ -123,6 +125,6 @@ namespace sarwai {
     sensor_msgs::ImagePtr image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image_matrix).toImageMsg();
     image_copy = *image_msg;
     //Publishes the images along with bounding box information
-    PublishMergedData(image_copy, box, cloud);
+    PublishMergedData(image_copy, box, cloud, robotId);
   }
 }

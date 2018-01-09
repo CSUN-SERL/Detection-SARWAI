@@ -142,7 +142,11 @@ void YoloObjectDetector::init() {
 
   // Initialize publisher and subscriber.
   std::string cameraTopicName;
-  std::string pointCloudTopicName;
+  std::string pointCloudTopicOneName;
+  std::string pointCloudTopicTwoName;
+  std::string pointCloudTopicThreeName;
+  std::string pointCloudTopicFourName;
+
   int cameraQueueSize;
   int pointCloudQueueSize;
   std::string objectDetectorTopicName;
@@ -163,7 +167,13 @@ void YoloObjectDetector::init() {
   bool compiledMessageLatch;
 
   nodeHandle_.param("subscribers/camera_reading/topic", cameraTopicName, std::string("/camera/image_raw")); /**********************************************/
-  nodeHandle_.param("subscribers/pointcloud_reading/topic", pointCloudTopicName, std::string("/stereo/points2"));
+  //nodeHandle_.param("subscribers/camera_reading/topic2", cameraTopicTwoName, std::string("/robot2/camera/image_raw"));
+  
+  nodeHandle_.param("subscribers/pointcloud_reading/topic1", pointCloudTopicOneName, std::string("/robot1/stereo/points2"));
+  nodeHandle_.param("subscribers/pointcloud_reading/topic2", pointCloudTopicTwoName, std::string("/robot2/stereo/points2"));
+  nodeHandle_.param("subscribers/pointcloud_reading/topic3", pointCloudTopicThreeName, std::string("/robot3/stereo/points2"));
+  nodeHandle_.param("subscribers/pointcloud_reading/topic4", pointCloudTopicFourName, std::string("/robot4/stereo/points2"));
+
   nodeHandle_.param("subscribers/camera_reading/queue_size", cameraQueueSize, 1);
   nodeHandle_.param("subscribers/pointcloud_reading/queue_size", pointCloudQueueSize, 1000);
   nodeHandle_.param("publishers/object_detector/topic", objectDetectorTopicName, std::string("found_object"));
@@ -184,7 +194,12 @@ void YoloObjectDetector::init() {
   nodeHandle_.param("publishers/compiled_message/latch", compiledMessageLatch, false);
 
   imageSubscriber_ = imageTransport_.subscribe(cameraTopicName, cameraQueueSize, &YoloObjectDetector::cameraCallback,this);    //*********************************************************
-  pointcloudSubscriber_ = nodeHandle_.subscribe(pointCloudTopicName, pointCloudQueueSize, &YoloObjectDetector::pointcloudCallback, this);
+  
+  pointcloudOneSubscriber_ = nodeHandle_.subscribe(pointCloudTopicOneName, pointCloudQueueSize, &YoloObjectDetector::pointcloudOneCallback, this);
+  pointcloudTwoSubscriber_ = nodeHandle_.subscribe(pointCloudTopicTwoName, pointCloudQueueSize, &YoloObjectDetector::pointcloudTwoCallback, this);
+  pointcloudThreeSubscriber_ = nodeHandle_.subscribe(pointCloudTopicThreeName, pointCloudQueueSize, &YoloObjectDetector::pointcloudThreeCallback, this);
+  pointcloudFourSubscriber_ = nodeHandle_.subscribe(pointCloudTopicFourName, pointCloudQueueSize, &YoloObjectDetector::pointcloudFourCallback, this);
+  
   objectPublisher_ = nodeHandle_.advertise<std_msgs::Int8>(objectDetectorTopicName, objectDetectorQueueSize, objectDetectorLatch);
   boundingBoxesPublisher_ = nodeHandle_.advertise<darknet_ros_msgs::BoundingBoxes>(boundingBoxesTopicName, boundingBoxesQueueSize, boundingBoxesLatch);
   detectionImagePublisher_ = nodeHandle_.advertise<sensor_msgs::Image>(detectionImageTopicName, detectionImageQueueSize, detectionImageLatch);
@@ -323,13 +338,14 @@ void YoloObjectDetector::runYolo(cv::Mat &fullFrame, int id) {
   if (!publishDetectionImage(inputFrame_empty)) ROS_DEBUG("Detection image has not been broadcasted.");
 }
 
-void YoloObjectDetector::runPointCloudYolo(cv::Mat& fullFrame, const sensor_msgs::PointCloud2& cloud, int id) {
+void YoloObjectDetector::runPointCloudYolo(cv::Mat& fullFrame, const sensor_msgs::PointCloud2& cloud, int robotNumber, int id) {
   if(enableConsoleOutput_) {
     ROS_INFO("[YoloObjectDetector] runYolo().");
   }
 
   ROS_INFO("running yolo");
   detection_msgs::CompiledMessage outmsg;
+  outmsg.robotId = robotNumber;
   outmsg.cloud = cloud;
 
   cv::Mat inputFrame = fullFrame.clone();
@@ -436,7 +452,23 @@ void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg) {
   return;
 }
 
-void YoloObjectDetector::pointcloudCallback(const sensor_msgs::PointCloud2ConstPtr& msg) {
+void YoloObjectDetector::pointcloudOneCallback(const sensor_msgs::PointCloud2ConstPtr& msg) {
+  YoloObjectDetector::pointcloudCallback(msg, 1);
+}
+
+void YoloObjectDetector::pointcloudTwoCallback(const sensor_msgs::PointCloud2ConstPtr& msg) {
+  YoloObjectDetector::pointcloudCallback(msg, 2);
+}
+
+void YoloObjectDetector::pointcloudThreeCallback(const sensor_msgs::PointCloud2ConstPtr& msg) {
+  YoloObjectDetector::pointcloudCallback(msg, 3);
+}
+
+void YoloObjectDetector::pointcloudFourCallback(const sensor_msgs::PointCloud2ConstPtr& msg) {
+  YoloObjectDetector::pointcloudCallback(msg, 4);
+}
+
+void YoloObjectDetector::pointcloudCallback(const sensor_msgs::PointCloud2ConstPtr& msg, int robotNumber) {
   if(enableConsoleOutput_) {
     ROS_INFO("[YoloObjectDetector] Pointcloud image received.");
   }
@@ -457,7 +489,7 @@ void YoloObjectDetector::pointcloudCallback(const sensor_msgs::PointCloud2ConstP
     camImageCopy_ = cam_image->image.clone();
     frameWidth_ = cam_image->image.size().width;
     frameHeight_ = cam_image->image.size().height;
-    runPointCloudYolo(cam_image->image, *msg);
+    runPointCloudYolo(cam_image->image, *msg, robotNumber);
   }
   return;
 }

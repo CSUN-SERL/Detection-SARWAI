@@ -5,7 +5,10 @@ subscribers:
     queue_size: 1
 
   pointcloud_reading:
-    topic: /camera/depth/points
+    topic1: /robot1/stereo/points2
+    topic2: /robot2/stereo/points2
+    topic3: /robot3/stereo/points2
+    topic4: /robot4/stereo/points2
     queue_size: 1
 
 actions:

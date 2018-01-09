@@ -121,7 +121,7 @@ class YoloObjectDetector
   /*
    * Run YOLO and detect obstacles with pointcloud image.
    */
-  void runPointCloudYolo(cv::Mat& fullFrame, const sensor_msgs::PointCloud2& cloud, int id = 0);
+  void runPointCloudYolo(cv::Mat& fullFrame, const sensor_msgs::PointCloud2& cloud, int robotNumber, int id = 0);
 
   /*!
    * Callback of camera.
@@ -132,7 +132,12 @@ class YoloObjectDetector
   /*
    *  Callback for pointcloud message
    */
-  void pointcloudCallback(const sensor_msgs::PointCloud2ConstPtr& msg);
+  void pointcloudCallback(const sensor_msgs::PointCloud2ConstPtr& msg, int robotNumber);
+
+  void pointcloudOneCallback(const sensor_msgs::PointCloud2ConstPtr& msg);
+  void pointcloudTwoCallback(const sensor_msgs::PointCloud2ConstPtr& msg);
+  void pointcloudThreeCallback(const sensor_msgs::PointCloud2ConstPtr& msg);
+  void pointcloudFourCallback(const sensor_msgs::PointCloud2ConstPtr& msg);
 
   /*!
    * Check for objects action goal callback.
@@ -182,7 +187,11 @@ class YoloObjectDetector
   //! ROS subscriber and publisher.
   image_transport::Subscriber imageSubscriber_;
   // ros::Subscriber imageSubscriber_;
-  ros::Subscriber pointcloudSubscriber_;
+  ros::Subscriber pointcloudOneSubscriber_;
+  ros::Subscriber pointcloudTwoSubscriber_;
+  ros::Subscriber pointcloudThreeSubscriber_;
+  ros::Subscriber pointcloudFourSubscriber_;
+  
   ros::Publisher objectPublisher_;
   ros::Publisher boundingBoxesPublisher_;
 

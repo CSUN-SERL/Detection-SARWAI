@@ -13,6 +13,7 @@ namespace sarwai {
     int box_width;
     int box_height;
     float depth;
+    unsigned robot_id;
   };
 }
 
