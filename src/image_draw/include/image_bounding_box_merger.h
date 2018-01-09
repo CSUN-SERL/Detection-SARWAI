@@ -9,7 +9,8 @@
 #include "sensor_msgs/Image.h"
 #include "darknet_ros_msgs/BoundingBoxes.h"
 #include "detection_msgs/DetectionPointCloud.h"
-#include "detection_msgs/PointCloudImage.h"
+//#include "detection_msgs/PointCloudImage.h"
+#include "detection_msgs/CompiledMessage.h"
 
 namespace sarwai {
 
@@ -24,8 +25,8 @@ namespace sarwai {
     ros::NodeHandle* nh_;
 
     ros::Subscriber image_frame_sub_;
-    ros::Subscriber bounding_box_sub_;
-    ros::Subscriber detection_flag_sub_;
+    // ros::Subscriber bounding_box_sub_;
+    // ros::Subscriber detection_flag_sub_;
 
     ros::Publisher visual_detection_pub_;
     //Queue hold series of 1s and 0s
@@ -36,13 +37,15 @@ namespace sarwai {
     std::queue<std::vector<darknet_ros_msgs::BoundingBox>> bounding_boxes_;  
     //Publishes data
     void PublishMergedData(sensor_msgs::Image, darknet_ros_msgs::BoundingBox, const sensor_msgs::PointCloud2& cloud); 
-    void RunImageProcess(const sensor_msgs::PointCloud2& cloud);
+    //void RunImageProcess(const sensor_msgs::PointCloud2& cloud);
+    void RunImageProcess(const detection_msgs::CompiledMessageConstPtr& msg);
     void ImageAndBoundingBoxToPublishQueue(darknet_ros_msgs::BoundingBox,
       sensor_msgs::Image);
-    void ImageCallback(const detection_msgs::PointCloudImageConstPtr& msg);
-    void ArrayReceived(const darknet_ros_msgs::BoundingBoxes& msg);
-    void ObjectDetected(const std_msgs::Int8& msg);
     void DrawRectAndPublishImage(const darknet_ros_msgs::BoundingBox &box, const sensor_msgs::Image &, const sensor_msgs::PointCloud2& cloud);
+    //void ImageCallback(const detection_msgs::PointCloudImageConstPtr& msg);
+    void ImageCallback(const detection_msgs::CompiledMessageConstPtr& msg);
+    // void ArrayReceived(const darknet_ros_msgs::BoundingBoxes& msg);
+    // void ObjectDetected(const std_msgs::Int8& msg);
   };
 }
 

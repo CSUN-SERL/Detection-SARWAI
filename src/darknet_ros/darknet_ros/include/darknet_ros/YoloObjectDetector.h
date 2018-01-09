@@ -37,7 +37,8 @@
 #include <darknet_ros_msgs/CheckForObjectsAction.h>
 
 //detection_msgs
-#include <detection_msgs/PointCloudImage.h>
+//#include <detection_msgs/PointCloudImage.h>
+#include <detection_msgs/CompiledMessage.h>
 
 namespace darknet_ros {
 
@@ -158,7 +159,8 @@ class YoloObjectDetector
   /*
    * Publishes the detection image with pointcloud.
    */
-  bool publishDetectionImageWithPC(const cv::Mat& detectionImage, const sensor_msgs::PointCloud2& cloud);
+  //bool publishDetectionImageWithPC(const cv::Mat& detectionImage, const sensor_msgs::PointCloud2& cloud);
+  bool publishDetectionImageWithPC(const cv::Mat& detectionImage, detection_msgs::CompiledMessage cloudMessage);
 
   //! Typedefs.
   typedef actionlib::SimpleActionServer<darknet_ros_msgs::CheckForObjectsAction> CheckForObjectsActionServer;
@@ -184,12 +186,12 @@ class YoloObjectDetector
   ros::Publisher objectPublisher_;
   ros::Publisher boundingBoxesPublisher_;
 
-  //! Detected objects.
-  std::vector< std::vector<RosBox_> > rosBoxes_;
-  std::vector<int> rosBoxCounter_;
-  std::vector<cv::Scalar> rosBoxColors_;
-  darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
-  RosBox_* boxes_;
+  //! Detected objects. (these should seriously just be local )
+  std::vector< std::vector<RosBox_> > rosBoxes_; // Bounding boxes, organized by class ID
+  std::vector<int> rosBoxCounter_; // Number of bounding boxes, organized by class ID (e.g. counter[0] may correspond to # of Person bounding boxes)
+  std::vector<cv::Scalar> rosBoxColors_; // Visualized bounding box colors, organized by class ID
+  darknet_ros_msgs::BoundingBoxes boundingBoxesResults_; // BoundingBoxes message for publishing
+  RosBox_* boxes_; //Unorganized array of bounding boxes (to be turned into rosBoxes_)
 
   //! Camera related parameters.
   int frameWidth_;
@@ -204,7 +206,10 @@ class YoloObjectDetector
 
   //! Publisher of the bounding box image.
   ros::Publisher detectionImagePublisher_;
-  ros::Publisher detectionPointCloudPublisher_;
+  //ros::Publisher detectionPointCloudPublisher_;
+
+  //Generalized publisher
+  ros::Publisher compiledMessagePublisher_;
 };
 
 } /* namespace darknet_ros*/

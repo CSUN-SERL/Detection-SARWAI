@@ -27,7 +27,7 @@ namespace sarwai {
 
   void DepthCalculator::CalculationCallback(const detection_msgs::DetectionPointCloudConstPtr& msg) {
     darknet_ros_msgs::BoundingBox box = msg->detection.bounding_box;
-    ROS_INFO("Box info: x = %ld, xm = %ld, y = %ld, ym = %ld", box.xmin, box.xmax, box.ymin, box.ymax);
+    //ROS_INFO("Box info: x = %ld, xm = %ld, y = %ld, ym = %ld", box.xmin, box.xmax, box.ymin, box.ymax);
     // BOX: 241, 379, 0, 423
 
 
@@ -55,6 +55,16 @@ namespace sarwai {
     float noiseLevel = 0.0f;
     float minRange = 0.0f;
     int borderSize = 0;
+
+    //depth calculation
+    /*
+    float scale = .333;
+    int xsize = static_cast<int>((box.xmax - box.xmin)*scale);
+    int ysize = static_cast<int>((box.ymax - box.ymin)*scale);
+    */
+
+
+    
 
     pcl::RangeImage rangeImage;
     //rangeImage.createFromPointCloud(xyzCloud, angularResolution, maxAngleWidth, maxAngleHeight, sensorPose, coordinateFrame, noiseLevel, minRange, borderSize);
@@ -93,6 +103,7 @@ namespace sarwai {
 
     detection_msgs::ProcessedVisualDetection outmsg = msg->detection;
     outmsg.bounding_box.depth = (float)distanceAverage;
+    ROS_INFO("Box info: x = %ld, xm = %ld, y = %ld, ym = %ld, distance = %6.4lf", box.xmin, box.xmax, box.ymin, box.ymax, distanceAverage);
     pub_.publish(outmsg);
   }
 

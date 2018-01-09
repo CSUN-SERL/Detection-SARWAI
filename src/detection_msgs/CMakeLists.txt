@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
    ProcessedVisualDetection.msg
    DetectionPointCloud.msg
    PointCloudImage.msg
+   CompiledMessage.msg
  )
 
 ## Generate added messages and services with any dependencies listed here

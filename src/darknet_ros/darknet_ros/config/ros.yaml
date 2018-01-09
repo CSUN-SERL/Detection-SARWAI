@@ -28,12 +28,17 @@ publishers:
   detection_image:
     topic: /darknet_ros/detection_image
     queue_size: 1
-    latch: true
+    latch: false
 
   pointcloud_image:
     topic: /darknet_ros/pointcloud_detection_image
     queue_size: 1
-    latch: true
+    latch: false
+
+  compiled_message:
+    topic: /detection/compiled_ros_msg
+    queue_size: 1000
+    latch: false
 
 image_view:
 

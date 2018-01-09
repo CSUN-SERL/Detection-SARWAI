@@ -158,6 +158,10 @@ void YoloObjectDetector::init() {
   bool detectionImageLatch;
   bool detectionPointCloudLatch;
 
+  std::string compiledMessageTopicName;
+  int compiledMessageTopicSize;
+  bool compiledMessageLatch;
+
   nodeHandle_.param("subscribers/camera_reading/topic", cameraTopicName, std::string("/camera/image_raw")); /**********************************************/
   nodeHandle_.param("subscribers/pointcloud_reading/topic", pointCloudTopicName, std::string("/stereo/points2"));
   nodeHandle_.param("subscribers/camera_reading/queue_size", cameraQueueSize, 1);
@@ -172,15 +176,21 @@ void YoloObjectDetector::init() {
   nodeHandle_.param("publishers/pointcloud_image/topic", pointCloudImageTopicName, std::string("pointcloud_detection_image"));
   nodeHandle_.param("publishers/detection_image/queue_size", detectionImageQueueSize, 1);
   nodeHandle_.param("publishers/pointcloud_image/queue_size", detectionPointCloudQueueSize, 1000);
-  nodeHandle_.param("publishers/detection_image/latch", detectionImageLatch, true);
-  nodeHandle_.param("publishers/pointcloud_image/latch", detectionPointCloudLatch, true);
+  nodeHandle_.param("publishers/detection_image/latch", detectionImageLatch, false);
+  nodeHandle_.param("publishers/pointcloud_image/latch", detectionPointCloudLatch, false);
+
+  nodeHandle_.param("publishers/compiled_message/topic", compiledMessageTopicName, std::string("/detection/compiled_ros_msg"));
+  nodeHandle_.param("publishers/compiled_message/queue_size", compiledMessageTopicSize, 1000);
+  nodeHandle_.param("publishers/compiled_message/latch", compiledMessageLatch, false);
 
   imageSubscriber_ = imageTransport_.subscribe(cameraTopicName, cameraQueueSize, &YoloObjectDetector::cameraCallback,this);    //*********************************************************
   pointcloudSubscriber_ = nodeHandle_.subscribe(pointCloudTopicName, pointCloudQueueSize, &YoloObjectDetector::pointcloudCallback, this);
   objectPublisher_ = nodeHandle_.advertise<std_msgs::Int8>(objectDetectorTopicName, objectDetectorQueueSize, objectDetectorLatch);
   boundingBoxesPublisher_ = nodeHandle_.advertise<darknet_ros_msgs::BoundingBoxes>(boundingBoxesTopicName, boundingBoxesQueueSize, boundingBoxesLatch);
   detectionImagePublisher_ = nodeHandle_.advertise<sensor_msgs::Image>(detectionImageTopicName, detectionImageQueueSize, detectionImageLatch);
-  detectionPointCloudPublisher_  = nodeHandle_.advertise<detection_msgs::PointCloudImage>(pointCloudImageTopicName, detectionPointCloudQueueSize, detectionPointCloudLatch);
+  //detectionPointCloudPublisher_  = nodeHandle_.advertise<detection_msgs::PointCloudImage>(pointCloudImageTopicName, detectionPointCloudQueueSize, detectionPointCloudLatch);
+
+  compiledMessagePublisher_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName, compiledMessageTopicSize, compiledMessageLatch);
 
   // Action servers.
   std::string checkForObjectsActionName;
@@ -211,6 +221,7 @@ YoloObjectDetector::~YoloObjectDetector() {
 
 void YoloObjectDetector::drawBoxes(cv::Mat &inputFrame, std::vector<RosBox_> &rosBoxes, int &numberOfObjects,
    cv::Scalar &rosBoxColor, const std::string &objectLabel) {
+
   darknet_ros_msgs::BoundingBox boundingBox;
 
   for (int i = 0; i < numberOfObjects; i++) {
@@ -244,11 +255,13 @@ void YoloObjectDetector::runYolo(cv::Mat &fullFrame, int id) {
     ROS_INFO("[YoloObjectDetector] runYolo().");
   }
 
+  ROS_INFO("WRONG FUCKING THING");
+
   cv::Mat inputFrame = fullFrame.clone();
   cv::Mat inputFrame_empty = fullFrame.clone(); // Cloning live video to publish without bounding boxes
 
   // run yolo and get bounding boxes for objects
-  boxes_ = demo_yolo();
+  boxes_ = demo_yolo(); // populate the unorganized array of boundingBoxes
 
   // get the number of bounding boxes found
   int num = boxes_[0].num;
@@ -262,7 +275,7 @@ void YoloObjectDetector::runYolo(cv::Mat &fullFrame, int id) {
     for (int i = 0; i < num; i++) {
       for (int j = 0; j < numClasses_; j++) {
          if (boxes_[i].Class == j) {
-            rosBoxes_[j].push_back(boxes_[i]);
+            rosBoxes_[j].push_back(boxes_[i]); // Add object i into Class category j
             rosBoxCounter_[j]++;
             if(!darknetImageViewer_ && enableConsoleOutput_) {
               std::cout << classLabels_[boxes_[i].Class] << " (" << boxes_[i].prob*100 << "%)" << std::endl;
@@ -280,7 +293,7 @@ void YoloObjectDetector::runYolo(cv::Mat &fullFrame, int id) {
       if (rosBoxCounter_[i] > 0) drawBoxes(inputFrame, rosBoxes_[i],
                                              rosBoxCounter_[i], rosBoxColors_[i], classLabels_[i]);
     }
-    boundingBoxesPublisher_.publish(boundingBoxesResults_);
+    //boundingBoxesPublisher_.publish(boundingBoxesResults_);
   }
   else {
     std_msgs::Int8 msg;
@@ -315,6 +328,10 @@ void YoloObjectDetector::runPointCloudYolo(cv::Mat& fullFrame, const sensor_msgs
     ROS_INFO("[YoloObjectDetector] runYolo().");
   }
 
+  ROS_INFO("running yolo");
+  detection_msgs::CompiledMessage outmsg;
+  outmsg.cloud = cloud;
+
   cv::Mat inputFrame = fullFrame.clone();
   cv::Mat inputFrame_empty = fullFrame.clone(); // Cloning live video to publish without bounding boxes
 
@@ -326,6 +343,7 @@ void YoloObjectDetector::runPointCloudYolo(cv::Mat& fullFrame, const sensor_msgs
 
   // if at least one BoundingBox found, draw box
   if (num > 0  && num <= 100) {
+    ROS_INFO("in if");
     if(!darknetImageViewer_ && enableConsoleOutput_) {
       std::cout << "# Objects: " << num << std::endl;
     }
@@ -351,12 +369,23 @@ void YoloObjectDetector::runPointCloudYolo(cv::Mat& fullFrame, const sensor_msgs
       if (rosBoxCounter_[i] > 0) drawBoxes(inputFrame, rosBoxes_[i],
                                              rosBoxCounter_[i], rosBoxColors_[i], classLabels_[i]);
     }
+    outmsg.boxes = boundingBoxesResults_;
     boundingBoxesPublisher_.publish(boundingBoxesResults_);
   }
   else {
+    ROS_INFO("if FAILED");
     std_msgs::Int8 msg;
     msg.data = 0;
     objectPublisher_.publish(msg);
+
+    //clear variables
+    boundingBoxesResults_.boundingBoxes.clear();
+
+    for (int i = 0; i < numClasses_; i++) {
+      rosBoxes_[i].clear();
+      rosBoxCounter_[i] = 0;
+    }
+    return;
   }
   if (isCheckingForObjects()) {
     ROS_DEBUG("[YoloObjectDetector] check for objects in image.");
@@ -378,7 +407,7 @@ void YoloObjectDetector::runPointCloudYolo(cv::Mat& fullFrame, const sensor_msgs
   }
 
   // Publish elevation change map.
-  if (!publishDetectionImageWithPC(inputFrame_empty, cloud)) ROS_DEBUG("Detection image has not been broadcasted.");
+  if (!publishDetectionImageWithPC(inputFrame_empty, outmsg)) ROS_DEBUG("Detection image has not been broadcasted.");
 }
 
 void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg) {
@@ -483,8 +512,13 @@ bool YoloObjectDetector::publishDetectionImage(const cv::Mat& detectionImage) {
   return true;
 }
 
-bool YoloObjectDetector::publishDetectionImageWithPC(const cv::Mat& detectionImage, const sensor_msgs::PointCloud2& cloud) {
-  if (detectionPointCloudPublisher_.getNumSubscribers() < 1) return false;
+//bool YoloObjectDetector::publishDetectionImageWithPC(const cv::Mat& detectionImage, const sensor_msgs::PointCloud2& cloud) {
+bool YoloObjectDetector::publishDetectionImageWithPC(const cv::Mat& detectionImage, detection_msgs::CompiledMessage cloudMessage) {
+  if (compiledMessagePublisher_.getNumSubscribers() < 1) {
+    ROS_INFO("Num subs less than 1");
+    return false;
+  }
+  ROS_INFO("sending");
   cv_bridge::CvImage cvImage;
   cvImage.header.stamp = ros::Time::now();
   cvImage.header.frame_id = "detection_image";
@@ -492,13 +526,14 @@ bool YoloObjectDetector::publishDetectionImageWithPC(const cv::Mat& detectionIma
   cvImage.image    = detectionImage;
 
   sensor_msgs::Image finalImage = *cvImage.toImageMsg();
-  finalImage.header = cloud.header;
+  finalImage.header = cloudMessage.cloud.header;
 
-  detection_msgs::PointCloudImage outmsg;
-  outmsg.image = finalImage;
-  outmsg.cloud = cloud;
+  //detection_msgs::PointCloudImage outmsg;
+  cloudMessage.image = finalImage;
 
-  detectionPointCloudPublisher_.publish(outmsg);
+  //detectionPointCloudPublisher_.publish(cloudMessage);
+  ROS_INFO("Before publish whoo");
+  compiledMessagePublisher_.publish(cloudMessage);
   ROS_DEBUG("Detection image has been published.");
   return true;
 }
