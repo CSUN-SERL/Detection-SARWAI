@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   detection_msgs
   cv_bridge
-image_transport
+  image_transport
 )
 
 catkin_package(
@@ -27,6 +27,7 @@ set(
   src/detection_logger.cc
   src/logging_strategy_registry.cc
   src/visual/local_image_logging_strategy.cc
+  src/audio/local_audio_logging_strategy.cc
 
 )
 
