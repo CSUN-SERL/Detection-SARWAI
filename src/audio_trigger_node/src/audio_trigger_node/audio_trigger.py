@@ -7,15 +7,14 @@ from multiprocessing import Process
 from audio_trigger_node.msg import Trigger
 
 
-global trigger_list
-trigger_list = {}
+
 
 def main():
 
-    class Struct:
-        def __init__(self, **entries):
-            self.__dict__.update(entries)
-    # define the class for our location data
+    global trigger_list
+    trigger_list = {}
+
+    # define the class for our trigger location data
     class trigger_info(yaml.YAMLObject):
         yaml_tag = u'!Location'
         def __init__(self,x,y,width,height,audio_file):
@@ -26,7 +25,8 @@ def main():
             self.audio_path = audio_file
 
     # load our yaml file
-    with open('../location_test.yaml', 'r') as file_stream:
+
+    with open('location_test.yaml', 'r') as file_stream:
         location_info_yaml = yaml.safe_load(file_stream)
 
     # populate location dictionary like so
@@ -47,7 +47,7 @@ def main():
 
 def trigger_callback(data):
 
-    pub_trigger = rospy.Publisher('/audio_trigger',Trigger,queue_size )
+    pub_trigger = rospy.Publisher('/audio_trigger',Trigger,queue_size=100 )
 
     x = data.pose.pose.position.x
     y = data.pose.pose.position.y
@@ -62,7 +62,10 @@ def trigger_callback(data):
     #for future implementation of volume as a function
     #of distace from center of trigger point
     msg.distance_from_center = pow(pow(x - (trigger.x+.5*(trigger.w)),2) + pow(y - (trigger.y+.5*(trigger.h)),2),.5)
-    print msg.distance_from_center
+    pub_trigger.publish(msg)
+
+
+    #stream audio to icecast to icecast
 
 
 
