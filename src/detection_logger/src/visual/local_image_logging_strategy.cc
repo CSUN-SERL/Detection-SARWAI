@@ -99,8 +99,10 @@ namespace sarwai {
 
     // output text
     std::ostringstream formattedstring;
+    //formattedstring << "class:" << boxdata.object_class << ";confidence:" << boxdata.confidence_rating << ";timestamp:" << boxdata.timestamp << ";x-coord:" << boxdata.left_x_coord << ";y-coord:" << boxdata.top_y_coord << ";width:" << boxdata.box_width << ";height:" << boxdata.box_height << ";depth:" << boxdata.depth <<"m;imagefilename:" << "image_" << filenum << ".jpg,\n";
     formattedstring <<
     boxdata.object_class << "," <<
+    boxdata.robot_id << "," <<
     boxdata.confidence_rating << "," <<
     boxdata.timestamp << "," <<
     boxdata.left_x_coord << "," <<

@@ -8,25 +8,13 @@ namespace sarwai {
   ImageBoundingBoxMerger::ImageBoundingBoxMerger() {
     //Subscribes to darknet_ros/detection_image
     this->nh_ = new ros::NodeHandle();
+
     this->image_frame_sub_ = this->nh_->subscribe(
-      "visual_detection_image", 1000, &ImageBoundingBoxMerger::ImageCallback, this); // 1 //darknet_ros/detection_image
-    //subscribes to darknet_ros/bounding_boxes    
-    this->bounding_box_sub_ = this->nh_->subscribe(
-      "visual_detection_bb", 1000, &ImageBoundingBoxMerger::ArrayReceived, this); //darknet_ros/bounding_boxes
-    //subscribes to darknet_ros/found_object
-    this->detection_flag_sub_ = this->nh_->subscribe(
-      "visual_detection_flag", 1000, &ImageBoundingBoxMerger::ObjectDetected, this); //darknet_ros/found_object
+      "/detection/compiled_ros_msg", 10, &ImageBoundingBoxMerger::RunImageProcess, this);
+
     //Publishes to visual_detection topic
       this->visual_detection_pub_ = this->nh_->advertise<detection_msgs::ProcessedVisualDetection>(
-        "visual_detection", 1000); 
-      
-    /*this->raw_image_frame_sub_ = this->nh_->subscribe(
-      "darknet_ros/detection_image", 1000, &ImageBoundingBoxMerger::RawImageCallback, this);   //webcam/image_raw 5
-
-      this->tracking_handler_ = new VisualDetectionTracker(TrackingAlgorithm::BOOSTING);
-
-*/
-
+        "visual_detection", 1000);
   }
   
   /*void ImageBoundingBoxMerger::RawImageCallback(const sensor_msgs::ImageConstPtr& msg) {
@@ -41,97 +29,43 @@ namespace sarwai {
   }
   
   void ImageBoundingBoxMerger::PublishMergedData(
-      sensor_msgs::Image image, darknet_ros_msgs::BoundingBox box
-  ) {
-    detection_msgs::ProcessedVisualDetection outgoing_msg;
-    //Set image info to custom message detection_msgs::ProcessedVisualDetection
-    outgoing_msg.image = image; 
-    //Set bouding box info to custom message detection_msgs::ProcessedVisualDetection
-    outgoing_msg.bounding_box = box;    
-    //Publishes to topic
-    this->visual_detection_pub_.publish(outgoing_msg);  
+    sensor_msgs::Image image, darknet_ros_msgs::BoundingBox box, unsigned int robotId) {
+      detection_msgs::ProcessedVisualDetection outgoing_detection_msg;
+      //Set image info to custom message detection_msgs::ProcessedVisualDetection
+      outgoing_detection_msg.image = image; 
+      //Set bounding box info to custom message detection_msgs::ProcessedVisualDetection
+      outgoing_detection_msg.bounding_box = box;
+      outgoing_detection_msg.robotId = robotId;
+      this->visual_detection_pub_.publish(outgoing_detection_msg);  
   }
 
-  //Recives images from topic
-  void ImageBoundingBoxMerger::ImageCallback(const sensor_msgs::ImageConstPtr& msg) {
-    this->video_image_frames_.push(*msg);
-    ROS_INFO("testing image draw");
-    RunImageProcess();
-  }
-
-  void ImageBoundingBoxMerger::RunImageProcess() {
-    
-
-    //Process only if detection_flag_ queue and video_imag queue is not empty
-
-    if (!this->detection_flag_.empty() && !this->bounding_boxes_matrix_.empty()) {
-      if (this->detection_flag_.front() == 1) {
-
-        //seting item in front of queue to bounding_box
-        std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = this->bounding_boxes_matrix_.front();  
-        sensor_msgs::Image master_image = this->video_image_frames_.front();
-        
-        // Send boxes and image to the tracking system
-        std::vector<cv::Rect2d> detection_bbs;
-        for (int i = 0; i < bounding_boxes.size(); i++) {
-          darknet_ros_msgs::BoundingBox bb = bounding_boxes.at(i);
-          cv::Rect2d bb_rect(bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin);
-          detection_bbs.push_back(bb_rect);
-        }
-
-        for (int i = 0; i < bounding_boxes.size(); i++) {
-          DrawRectAndPublishImage(bounding_boxes[i], master_image);    
-        }
-          //Pops first bounding box information
-        this->bounding_boxes_matrix_.pop();  
-          //pops first frame of image
-        this->video_image_frames_.pop();  
-      }
+  void ImageBoundingBoxMerger::RunImageProcess(const detection_msgs::CompiledMessageConstPtr& msg) {
+    std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = msg->boxes.boundingBoxes;
+    sensor_msgs::Image master_image = msg->image;
+    unsigned robotId = msg->robotId;
+    for (int i = 0; i < bounding_boxes.size(); i++) {
+      DrawRectAndPublishImage(bounding_boxes[i], master_image, robotId);    
     }
-  }
-
-  //gets data from topic and pushes into detection_flag queue
-  void ImageBoundingBoxMerger::ObjectDetected(const std_msgs::Int8& msg) { 
-    this->detection_flag_.push(msg.data); //pushes data to queue
-  }
-
-  // gets bounding box data from the top and pushes into bounding_box queue
-  void ImageBoundingBoxMerger::ArrayReceived(const darknet_ros_msgs::BoundingBoxes& msg) {  
-    std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = msg.boundingBoxes;
-    for (int i = 0; i < bounding_boxes.size(); ++i) {
-     //Processes frames only if they are labeled person
-      if (bounding_boxes[i].Class != "person") {    
-        bounding_boxes.erase(bounding_boxes.begin()+i);
-      }
-    }
-    //Push bounding box to bounding_box queue
-    this->bounding_boxes_matrix_.push(bounding_boxes);   
   }
 
   // Function draws box around the detected image
   void ImageBoundingBoxMerger::DrawRectAndPublishImage( 
-      const darknet_ros_msgs::BoundingBox &box, const sensor_msgs::Image &image
-  ) {
-    // Create a value copy of the image
-    sensor_msgs::Image image_copy = image;
-    // Create an OpenCV image matrix from the ROS Image msg
-    cv_bridge::CvImagePtr cv_image;
-    cv_image = cv_bridge::toCvCopy(image_copy, sensor_msgs::image_encodings::BGR8);
-    cv::Mat image_matrix = cv_image->image;
-    cv::Mat test_matrix = cv_image->image;
-    // Draw the bounding box to the OpenCV matrix
-    //CV draw function
-    cv::Point top_left_corner = cv::Point(box.xmin, box.ymin);  
-    //CV draw function
-    cv::Point bottom_right_corner = cv::Point(box.xmax, box.ymax);  
-    cv::rectangle(image_matrix, top_left_corner, bottom_right_corner, 2);
-   
-    sensor_msgs::ImagePtr image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image_matrix).toImageMsg();
-    image_copy = *image_msg;
-    //reassigns header value as the transition to cv and back drops the header data.
-    image_copy.header = image.header;
-    
-    PublishMergedData(image_copy, box);
+    const darknet_ros_msgs::BoundingBox &box, const sensor_msgs::Image &image, unsigned robotId) {
+      // Create a value copy of the image, to be modified later
+      sensor_msgs::Image image_copy = image; // @TODO: is this an unnecessary copy?
+      // Create an OpenCV image matrix from the ROS Image msg
+      cv_bridge::CvImagePtr cv_image;
+      cv_image = cv_bridge::toCvCopy(image_copy, sensor_msgs::image_encodings::BGR8);
+      cv::Mat image_matrix = cv_image->image;
+      cv::Point top_left_corner = cv::Point(box.xmin, box.ymin);  
+      cv::Point bottom_right_corner = cv::Point(box.xmax, box.ymax);
+      // Draw the bounding box on the image
+      cv::rectangle(image_matrix, top_left_corner, bottom_right_corner, 2);
+      sensor_msgs::ImagePtr image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image_matrix).toImageMsg();
+      image_copy = *image_msg;
+      // Reassigns header value as the transition to OpenCV and back drops the header data.
+      // In particular, we are interested in the timestamp of the image.
+      image_copy.header = image.header;
+      PublishMergedData(image_copy, box, robotId);
   }
-  
 }

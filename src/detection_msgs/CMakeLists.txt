@@ -25,6 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
    Rect.msg
    DetectionIdImage.msg
    DetectionMatch.msg
+   CompiledMessage.msg
  )
 
 ## Generate added messages and services with any dependencies listed here

@@ -38,6 +38,7 @@ namespace sarwai {
     log_entry.timestamp = (int) msg->image.header.stamp.sec;
     log_entry.confidence_rating = msg->bounding_box.probability;
     log_entry.object_class = msg->bounding_box.Class;
+    log_entry.robot_id = msg->robotId;
   }
 
   void DetectionLogger::ImageLogCallback(
