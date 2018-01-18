@@ -8,8 +8,9 @@
 #include "std_msgs/Int8.h"
 #include "sensor_msgs/Image.h"
 #include "darknet_ros_msgs/BoundingBoxes.h"
-#include "detection_msgs/DetectionPointCloud.h"
+//#include "detection_msgs/DetectionPointCloud.h"
 //#include "detection_msgs/PointCloudImage.h"
+#include "detection_msgs/ProcessedVisualDetection.h"
 #include "detection_msgs/CompiledMessage.h"
 
 #include "visual_detection_tracker.h"
@@ -31,7 +32,7 @@ namespace sarwai {
     // ros::Subscriber bounding_box_sub_;
     // ros::Subscriber detection_flag_sub_;
 
-    ros::Subscriber raw_image_frame_sub_;
+    // ros::Subscriber raw_image_frame_sub_;
 
     ros::Publisher visual_detection_pub_;
     //Queue hold series of 1s and 0s

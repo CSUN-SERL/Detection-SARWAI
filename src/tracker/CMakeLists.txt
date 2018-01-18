@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 catkin_package(
-  CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs std_msgs darknet_ros_msgs
+  CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs std_msgs darknet_ros_msgs detection_msgs
 )
 
 include_directories(

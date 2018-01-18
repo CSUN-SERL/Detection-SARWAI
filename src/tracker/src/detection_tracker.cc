@@ -18,12 +18,16 @@ namespace sarwai {
     this->detection_match_sub_ = this->nh_->subscribe(
         "detection_match", 1000, &VisualDetectionTracker::DetectionMatchCallback, this);
 
-    this->visual_detection_bb_ = this->nh_->advertise<darknet_ros_msgs::BoundingBoxes>(
-        "visual_detection_bb", 1000);
-    this->visual_detection_image_ = this->nh_->advertise<sensor_msgs::Image>(
-        "visual_detection_image", 1000);
-    this->visual_detection_flag_ = this->nh_->advertise<std_msgs::Int8>(
-        "visual_detection_flag", 1000);
+    // this->visual_detection_bb_ = this->nh_->advertise<darknet_ros_msgs::BoundingBoxes>(
+    //     "visual_detection_bb", 1000);
+    // this->visual_detection_image_ = this->nh_->advertise<sensor_msgs::Image>(
+    //     "visual_detection_image", 1000);
+    // this->visual_detection_flag_ = this->nh_->advertise<std_msgs::Int8>(
+    //     "visual_detection_flag", 1000);
+
+     this->compiled_messages_ = this->nh_->advertise<detection_msgs::CompiledMessage>(
+         "compiled_ros_message", 1000);
+
     this->detection_id_image_pub_ = nh_->advertise<detection_msgs::DetectionIdImage>(
         "labeled_detection_images", 100);
 
@@ -97,15 +101,19 @@ namespace sarwai {
           sensor_msgs::image_encodings::BGR8)->image,
         detection_bbs, bounding_boxes);
 
-
+      detection_msgs::CompiledMessage outmsg;
       // Send data along in the ROS node chain
-      std_msgs::Int8 msg;
-      darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
+      //std_msgs::Int8 msg;
+      //darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
+      outmsg.robotId = 0;
+      outmsg.boxes = out_going_bb;
+      outmsg.image = this->video_image_frames_.front();
+      compiled_messages_.publish(outmsg);
+      //msg.data = this->detection_flag_.front();
+      //visual_detection_bb_.publish(out_going_bb);
+      //visual_detection_image_.publish(this->video_image_frames_.front());
+      //visual_detection_flag_.publish(msg);
 
-      msg.data = this->detection_flag_.front();
-      visual_detection_bb_.publish(out_going_bb);
-      visual_detection_image_.publish(this->video_image_frames_.front());
-      visual_detection_flag_.publish(msg);
       this->out_going_bb.boundingBoxes.clear();
       this->video_image_frames_.pop();
       this->bounding_boxes_matrix_.pop();

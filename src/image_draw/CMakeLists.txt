@@ -36,7 +36,8 @@ add_executable(
   ${PROJECT_NAME}_node
   src/image_listener.cpp
   src/image_bounding_box_merger.cc
-  src/visual_detection_tracker.cc)
+#  src/visual_detection_tracker.cc
+)
 
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 

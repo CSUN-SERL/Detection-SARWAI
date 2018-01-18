@@ -24,6 +24,8 @@
 #include <opencv2/tracking/tracker.hpp>
 #include <opencv2/core/ocl.hpp>
 
+#include <detection_msgs/CompiledMessage.h>
+
 namespace sarwai {
 
   enum TrackingAlgorithm {BOOSTING, MIL, KCF, TLD, MEDIANFLOW, GOTURN};
@@ -54,9 +56,10 @@ namespace sarwai {
 
     ros::Subscriber detection_match_sub_;
 
-    ros::Publisher visual_detection_image_;
-    ros::Publisher visual_detection_bb_;
-    ros::Publisher visual_detection_flag_;
+    //ros::Publisher visual_detection_image_;
+    //ros::Publisher visual_detection_bb_;
+    //ros::Publisher visual_detection_flag_;
+    ros::Publisher compiled_messages_;
 
     ros::Publisher detection_id_image_pub_;
 

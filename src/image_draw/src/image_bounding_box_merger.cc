@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "image_bounding_box_merger.h"
 #include "sensor_msgs/Image.h"
 #include <opencv2/opencv.hpp>
@@ -10,11 +12,13 @@ namespace sarwai {
     this->nh_ = new ros::NodeHandle();
 
     this->image_frame_sub_ = this->nh_->subscribe(
-      "/detection/compiled_ros_msg", 10, &ImageBoundingBoxMerger::RunImageProcess, this);
+      "compiled_ros_message", 10, &ImageBoundingBoxMerger::RunImageProcess, this);
+
+    std::cout << "sub to compiled_ros_msg" << std::endl;
 
     //Publishes to visual_detection topic
       this->visual_detection_pub_ = this->nh_->advertise<detection_msgs::ProcessedVisualDetection>(
-        "visual_detection", 1000);
+        "/sarwai_detection/detection_processeddetection", 1000);
   }
   
   /*void ImageBoundingBoxMerger::RawImageCallback(const sensor_msgs::ImageConstPtr& msg) {
@@ -40,6 +44,7 @@ namespace sarwai {
   }
 
   void ImageBoundingBoxMerger::RunImageProcess(const detection_msgs::CompiledMessageConstPtr& msg) {
+    std::cout << "CALLING" << std::endl;
     std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = msg->boxes.boundingBoxes;
     sensor_msgs::Image master_image = msg->image;
     unsigned robotId = msg->robotId;
