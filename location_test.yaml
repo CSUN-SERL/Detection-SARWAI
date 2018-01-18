@@ -5,10 +5,10 @@ locations:
      y: 15
      width: 5
      height: 7
-     audio_file: "/audio/f1.wav"
+     query: 0
    L2:
-     x: 1
+     x: 50
      y: 13
      width: 20
      height: 25
-     audio_file: "/audio/f2.wav"
+     query: 1

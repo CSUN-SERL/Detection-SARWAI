@@ -6,28 +6,46 @@ from nav_msgs.msg import Odometry
 from multiprocessing import Process
 from audio_trigger_node.msg import Trigger
 
+# Topic used to send logging message
+pubtopic = '/detection_sarwai/detection_audiodetection'
 
+# found locations
+activatedLocations = {}
+
+# define the class for our query data
+class QueryData:
+    def __init__(self, confidence, false_positive, file_name):
+        self.confidence = confidence
+        self.false_positive = false_positive
+        self.file_name = file_name
 
 
 def main():
+    rospy.init_node('listen_for_pose',anonymous = True)
 
     global trigger_list
     trigger_list = {}
 
+    global query_list
+    query_list = {}
+
     # define the class for our trigger location data
     class trigger_info(yaml.YAMLObject):
         yaml_tag = u'!Location'
-        def __init__(self,x,y,width,height,audio_file):
+        def __init__(self,x,y,width,height,query):
             self.x = x
             self.y = y
             self.w = width
             self.h = height
-            self.audio_path = audio_file
+            self.q = query
 
     # load our yaml file
 
     with open('location_test.yaml', 'r') as file_stream:
         location_info_yaml = yaml.safe_load(file_stream)
+    
+    with open('premade_query.yaml', 'r') as file_stream:
+        query_info_yaml = yaml.safe_load(file_stream)
 
     # populate location dictionary like so
     # location name : Location_data object
@@ -37,12 +55,24 @@ def main():
         trigger = trigger_info(**location_info_yaml["locations"][key])
         trigger_list[key] = trigger
 
+    for key,value in query_info_yaml['queries'].iteritems():
+        query_list[key] = QueryData(**query_info_yaml['queries'][key])
+
+    #IGNORING POSE FAKER FOR NOW
     #subscribe to pose_mock
     #publish pose_mock
-    p1 = Process(target = pose_mock)
-    p1.start()
-    p2 = Process(target = listen_for_pose)
-    p2.start()
+#    p11 = Process(target = pose_mock(1))
+#    p12 = Process(target = pose_mock(2))
+
+#    p11.start()
+#    p12.start()
+
+    p21 = Process(target = listen_for_pose, args = ('/robot1/odometry/filtered',))
+    p22 = Process(target = listen_for_pose, args = ('/robot2/odometry/filtered',))
+
+    p21.start()
+    p22.start()
+
 
 
 def trigger_callback(data):
@@ -71,14 +101,15 @@ def trigger_callback(data):
 
 
 #publishing node for testing
-def pose_mock():
-    pub_test = rospy.Publisher('/pose_mock',Odometry,queue_size = 1000)
+def pose_mock(robot_num):
+
+    pub_test = rospy.Publisher('/pose_mock_'+str(robot_num),Odometry,queue_size = 1000)
     rospy.init_node('pose_mock')
     r = rospy.Rate(10)
 
     msg = Odometry()
-    msg.pose.pose.position.x = 12.3
-    msg.pose.pose.position.y = 23.2
+    msg.pose.pose.position.x = 10+robot_num
+    msg.pose.pose.position.y = 20+robot_num
 
     print "publisher start"
     while not rospy.is_shutdown():
@@ -86,11 +117,40 @@ def pose_mock():
         r.sleep()
 
 
-def listen_for_pose():
-    rospy.init_node('listen_for_pose',anonymous = True)
-    rospy.Subscriber('/pose_mock',Odometry,trigger_callback)
+def listen_for_pose(topic):
+    while True:
+        # get latest odometry message from specified topic
+        msg = rospy.wait_for_message(topic, Odometry)
 
-    rospy.spin()
+        #get x and y from message
+        pos = (msg.pose.pose.position.x, msg.pose.pose.position.y)
+
+        currentzone = ''
+        #check if odom x and y are in a trigger zone
+        for trigger,tval in trigger_list.iteritems():
+            if ( tval['x'] < pos[0] and
+                 tval['y'] < pos[1] and
+                 tval['x'] + tval['width'] > pos[0] and
+                 tval['y'] + tval['height'] > pos[1]):
+                currentzone = trigger
+                break
+        #if not, continue
+        else:
+            continue
+        #check if location has been activated before
+        if currentzone in activatedLocations:
+            #if so, continue
+            continue
+
+        #mark location as activated
+        activatedLocations[currentzone] = True
+
+        #get query associated with location
+        querynum = trigger_list[currentzone][query]
+        query = QueryData(**querylist['query' + str(querynum)])
+
+        #publish query to topic for logging in audio logger
+        # TODO
 
 
 if __name__ == "__main__":

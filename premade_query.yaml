@@ -1,0 +1,401 @@
+queries:
+    query0:
+        confidence: 0.52
+        false_positive: false
+        file_name: /audio/audio0.wav
+    query1:
+        confidence: 0.45
+        false_positive: true
+        file_name: /audio/audio76.wav
+    query10:
+        confidence: 0.89
+        false_positive: false
+        file_name: audio60.wav
+    query11:
+        confidence: 0.45
+        false_positive: true
+        file_name: audio36.wav
+    query12:
+        confidence: 0.52
+        false_positive: false
+        file_name: audio12.wav
+    query13:
+        confidence: 0.82
+        false_positive: false
+        file_name: audio88.wav
+    query14:
+        confidence: 0.95
+        false_positive: true
+        file_name: audio64.wav
+    query15:
+        confidence: 0.38
+        false_positive: true
+        file_name: audio40.wav
+    query16:
+        confidence: 0.34
+        false_positive: true
+        file_name: audio16.wav
+    query17:
+        confidence: 0.73
+        false_positive: true
+        file_name: audio92.wav
+    query18:
+        confidence: 0.47
+        false_positive: false
+        file_name: audio68.wav
+    query19:
+        confidence: 0.54
+        false_positive: false
+        file_name: audio44.wav
+    query2:
+        confidence: 0.79
+        false_positive: false
+        file_name: audio52.wav
+    query20:
+        confidence: 0.43
+        false_positive: false
+        file_name: audio20.wav
+    query21:
+        confidence: 0.39
+        false_positive: false
+        file_name: audio96.wav
+    query22:
+        confidence: 0.55
+        false_positive: false
+        file_name: audio72.wav
+    query23:
+        confidence: 0.73
+        false_positive: false
+        file_name: audio48.wav
+    query24:
+        confidence: 0.65
+        false_positive: false
+        file_name: audio24.wav
+    query25:
+        confidence: 0.41
+        false_positive: true
+        file_name: audio25.wav
+    query26:
+        confidence: 0.81
+        false_positive: true
+        file_name: audio1.wav
+    query27:
+        confidence: 0.73
+        false_positive: true
+        file_name: audio77.wav
+    query28:
+        confidence: 0.53
+        false_positive: true
+        file_name: audio53.wav
+    query29:
+        confidence: 0.55
+        false_positive: true
+        file_name: audio29.wav
+    query3:
+        confidence: 0.6
+        false_positive: true
+        file_name: audio28.wav
+    query30:
+        confidence: 0.96
+        false_positive: false
+        file_name: audio5.wav
+    query31:
+        confidence: 0.93
+        false_positive: false
+        file_name: audio81.wav
+    query32:
+        confidence: 0.57
+        false_positive: true
+        file_name: audio57.wav
+    query33:
+        confidence: 0.68
+        false_positive: false
+        file_name: audio33.wav
+    query34:
+        confidence: 0.95
+        false_positive: true
+        file_name: audio9.wav
+    query35:
+        confidence: 0.47
+        false_positive: true
+        file_name: audio85.wav
+    query36:
+        confidence: 0.71
+        false_positive: true
+        file_name: audio61.wav
+    query37:
+        confidence: 0.76
+        false_positive: false
+        file_name: audio37.wav
+    query38:
+        confidence: 0.92
+        false_positive: false
+        file_name: audio13.wav
+    query39:
+        confidence: 0.49
+        false_positive: true
+        file_name: audio89.wav
+    query4:
+        confidence: 0.91
+        false_positive: true
+        file_name: audio4.wav
+    query40:
+        confidence: 0.78
+        false_positive: false
+        file_name: audio65.wav
+    query41:
+        confidence: 0.4
+        false_positive: false
+        file_name: audio41.wav
+    query42:
+        confidence: 0.63
+        false_positive: true
+        file_name: audio17.wav
+    query43:
+        confidence: 0.87
+        false_positive: false
+        file_name: audio93.wav
+    query44:
+        confidence: 0.55
+        false_positive: true
+        file_name: audio69.wav
+    query45:
+        confidence: 0.59
+        false_positive: false
+        file_name: audio45.wav
+    query46:
+        confidence: 0.51
+        false_positive: false
+        file_name: audio21.wav
+    query47:
+        confidence: 0.54
+        false_positive: true
+        file_name: audio97.wav
+    query48:
+        confidence: 0.77
+        false_positive: false
+        file_name: audio73.wav
+    query49:
+        confidence: 0.35
+        false_positive: true
+        file_name: audio49.wav
+    query5:
+        confidence: 0.82
+        false_positive: true
+        file_name: audio80.wav
+    query50:
+        confidence: 0.74
+        false_positive: true
+        file_name: audio50.wav
+    query51:
+        confidence: 0.81
+        false_positive: false
+        file_name: audio26.wav
+    query52:
+        confidence: 0.58
+        false_positive: true
+        file_name: audio2.wav
+    query53:
+        confidence: 0.47
+        false_positive: true
+        file_name: audio78.wav
+    query54:
+        confidence: 0.78
+        false_positive: false
+        file_name: audio54.wav
+    query55:
+        confidence: 0.6
+        false_positive: false
+        file_name: audio30.wav
+    query56:
+        confidence: 0.91
+        false_positive: false
+        file_name: audio6.wav
+    query57:
+        confidence: 0.33
+        false_positive: false
+        file_name: audio82.wav
+    query58:
+        confidence: 0.93
+        false_positive: true
+        file_name: audio58.wav
+    query59:
+        confidence: 0.38
+        false_positive: false
+        file_name: audio34.wav
+    query6:
+        confidence: 0.86
+        false_positive: true
+        file_name: audio56.wav
+    query60:
+        confidence: 0.33
+        false_positive: false
+        file_name: audio10.wav
+    query61:
+        confidence: 0.7
+        false_positive: true
+        file_name: audio86.wav
+    query62:
+        confidence: 0.58
+        false_positive: false
+        file_name: audio62.wav
+    query63:
+        confidence: 0.53
+        false_positive: true
+        file_name: audio38.wav
+    query64:
+        confidence: 0.39
+        false_positive: false
+        file_name: audio14.wav
+    query65:
+        confidence: 0.95
+        false_positive: false
+        file_name: audio90.wav
+    query66:
+        confidence: 0.84
+        false_positive: false
+        file_name: audio66.wav
+    query67:
+        confidence: 0.65
+        false_positive: false
+        file_name: audio42.wav
+    query68:
+        confidence: 0.75
+        false_positive: true
+        file_name: audio18.wav
+    query69:
+        confidence: 0.45
+        false_positive: true
+        file_name: audio94.wav
+    query7:
+        confidence: 0.97
+        false_positive: false
+        file_name: audio32.wav
+    query70:
+        confidence: 0.43
+        false_positive: true
+        file_name: audio70.wav
+    query71:
+        confidence: 0.87
+        false_positive: false
+        file_name: audio46.wav
+    query72:
+        confidence: 0.39
+        false_positive: false
+        file_name: audio22.wav
+    query73:
+        confidence: 0.47
+        false_positive: false
+        file_name: audio98.wav
+    query74:
+        confidence: 0.31
+        false_positive: true
+        file_name: audio74.wav
+    query75:
+        confidence: 0.64
+        false_positive: true
+        file_name: audio75.wav
+    query76:
+        confidence: 0.87
+        false_positive: false
+        file_name: audio51.wav
+    query77:
+        confidence: 0.76
+        false_positive: true
+        file_name: audio27.wav
+    query78:
+        confidence: 0.99
+        false_positive: false
+        file_name: audio3.wav
+    query79:
+        confidence: 0.77
+        false_positive: false
+        file_name: audio79.wav
+    query8:
+        confidence: 0.95
+        false_positive: true
+        file_name: audio8.wav
+    query80:
+        confidence: 0.58
+        false_positive: true
+        file_name: audio55.wav
+    query81:
+        confidence: 0.61
+        false_positive: true
+        file_name: audio31.wav
+    query82:
+        confidence: 0.72
+        false_positive: true
+        file_name: audio7.wav
+    query83:
+        confidence: 0.96
+        false_positive: true
+        file_name: audio83.wav
+    query84:
+        confidence: 0.35
+        false_positive: false
+        file_name: audio59.wav
+    query85:
+        confidence: 0.66
+        false_positive: false
+        file_name: audio35.wav
+    query86:
+        confidence: 0.45
+        false_positive: false
+        file_name: audio11.wav
+    query87:
+        confidence: 0.47
+        false_positive: true
+        file_name: audio87.wav
+    query88:
+        confidence: 0.74
+        false_positive: true
+        file_name: audio63.wav
+    query89:
+        confidence: 0.7
+        false_positive: true
+        file_name: audio39.wav
+    query9:
+        confidence: 0.65
+        false_positive: true
+        file_name: audio84.wav
+    query90:
+        confidence: 0.39
+        false_positive: false
+        file_name: audio15.wav
+    query91:
+        confidence: 0.75
+        false_positive: false
+        file_name: audio91.wav
+    query92:
+        confidence: 0.44
+        false_positive: false
+        file_name: audio67.wav
+    query93:
+        confidence: 0.58
+        false_positive: true
+        file_name: audio43.wav
+    query94:
+        confidence: 0.69
+        false_positive: false
+        file_name: audio19.wav
+    query95:
+        confidence: 0.9
+        false_positive: false
+        file_name: audio95.wav
+    query96:
+        confidence: 0.7
+        false_positive: true
+        file_name: audio71.wav
+    query97:
+        confidence: 0.86
+        false_positive: true
+        file_name: audio47.wav
+    query98:
+        confidence: 0.56
+        false_positive: true
+        file_name: audio23.wav
+    query99:
+        confidence: 0.97
+        false_positive: true
+        file_name: audio99.wav
