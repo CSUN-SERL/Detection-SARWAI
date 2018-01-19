@@ -10,7 +10,6 @@ import shout
 
 # Topic used to send logging message
 pubtopic = '/sarwai_detection/detection_audio'
-pub = rospy.Publisher(pubtopic, AudioDetection, queue_size = 1000)
 
 # found locations
 activatedLocations = {}
@@ -53,7 +52,7 @@ def bgLoop():
 
 
 def main():
-    rospy.init_node('listen_for_pose',anonymous = True)
+    #rospy.init_node('listen_for_pose',anonymous = True)
 
     global trigger_list
     trigger_list = {}
@@ -105,8 +104,8 @@ def main():
 #    p12.start()
 
     # Begin monitoring robot location
-    p21 = Process(target = listen_for_pose, args = ('/robot1/odometry/filtered',0))
-    p22 = Process(target = listen_for_pose, args = ('/robot2/odometry/filtered',1))
+    p21 = Process(target = listen_for_pose, args = ('/robot1/odometry/filtered',1))
+    p22 = Process(target = listen_for_pose, args = ('/robot2/odometry/filtered',2))
     p21.start()
     p22.start()
 
@@ -138,7 +137,7 @@ def trigger_callback(data):
 def pose_mock(robot_num):
 
     pub_test = rospy.Publisher('/pose_mock_'+str(robot_num),Odometry,queue_size = 1000)
-    rospy.init_node('pose_mock')
+    #rospy.init_node('pose_mock')
     r = rospy.Rate(10)
 
     msg = Odometry()
@@ -164,9 +163,13 @@ def stream_audio_query(file_path):
     bg_playing = True
 
 def listen_for_pose(topic, robotId):
+    rospy.init_node('listen_for_pose', anonymous=True)
+    pub = rospy.Publisher(pubtopic, AudioDetection, queue_size = 1000)
     while True:
         # get latest odometry message from specified topic
+        print "Listening for pose on " + topic
         msg = rospy.wait_for_message(topic, Odometry)
+        print "Got pose " + str(robotId)
 
         #get x and y from message
         pos = (msg.pose.pose.position.x, msg.pose.pose.position.y)
@@ -174,40 +177,47 @@ def listen_for_pose(topic, robotId):
         currentzone = ''
         #check if odom x and y are in a trigger zone
         for trigger,tval in trigger_list.iteritems():
-            if ( tval['x'] < pos[0] and
-                 tval['y'] < pos[1] and
-                 tval['x'] + tval['width'] > pos[0] and
-                 tval['y'] + tval['height'] > pos[1]):
+            print str(tval.x) + ' ' + str(tval.y) + ' ' + str(tval.w) + ' ' + str(tval.h)
+            print str(pos[0]) + ' ' + str(pos[1])
+            if ( (tval.x < pos[0]) &
+                 (tval.y < pos[1]) &
+                 ((tval.x + tval.w) > pos[0]) &
+                 ((tval.y + tval.h) > pos[1]) ):
                 currentzone = trigger
+                print "breaking"
                 break
+            print 'foring'
         #if not, continue
         else:
+            print "first continuing"
             continue
         #check if location has been activated before
         if currentzone in activatedLocations:
             #if so, continue
+            print "second continuing"
             continue
 
         #mark location as activated
         activatedLocations[currentzone] = True
 
         #get query associated with location
-        querynum = trigger_list[currentzone][query]
-        query = querylist['query' + str(querynum)]
-
-        #Cast audio file to icecast
-        #TODO: Should this be in a separate process?
-        stream_audio_query(query['file_name'])
+        querynum = trigger_list[currentzone].q
+        query = query_list['query' + str(querynum)]
 
         #publish query to topic for logging in audio logger
         audiomsg = AudioDetection()
         audiomsg.robotId = robotId
         audiomsg.confidence = query['confidence']
         audiomsg.filename = query['file_name']
-        audiomsg.robotX = pose[0]
-        audiomsg.robotY = pose[1]
+        audiomsg.robotX = pos[0]
+        audiomsg.robotY = pos[1]
 
+        print "Publishing"
         pub.publish(audiomsg)
+
+        #Cast audio file to icecast
+        #TODO: Should this be in a separate process?
+        stream_audio_query(query['file_name'])
 
 
 
