@@ -167,6 +167,18 @@ void YoloObjectDetector::init() {
   int compiledMessageTopicSize;
   bool compiledMessageTopicLatch;
 
+  std::string compiledMessageTopicName2;
+  int compiledMessageTopicSize2;
+  bool compiledMessageTopicLatch2;
+
+  std::string compiledMessageTopicName3;
+  int compiledMessageTopicSize3;
+  bool compiledMessageTopicLatch3;
+
+  std::string compiledMessageTopicName4;
+  int compiledMessageTopicSize4;
+  bool compiledMessageTopicLatch4;    
+
   nodeHandle_.param("subscribers/robot_one/topic", camOneTopicName, std::string("/webcam1/image_raw"));
   nodeHandle_.param("subscribers/robot_two/topic", camTwoTopicName, std::string("/webcam2/image_raw"));
   nodeHandle_.param("subscribers/robot_three/topic", camThreeTopicName, std::string("/webcam3/image_raw"));
@@ -189,9 +201,21 @@ void YoloObjectDetector::init() {
   nodeHandle_.param("publishers/detection_image/queue_size", detectionImageQueueSize, 1);
   nodeHandle_.param("publishers/detection_image/latch", detectionImageLatch, true);
 
-  nodeHandle_.param("publishers/compiled_message/topic", compiledMessageTopicName, std::string("/detection/compiled_ros_msg"));
-  nodeHandle_.param("publishers/compiled_message/queue_size", compiledMessageTopicSize, 1000);
-  nodeHandle_.param("publishers/compiled_message/latch", compiledMessageTopicLatch, false);
+  nodeHandle_.param("publishers/compiled_message1/topic", compiledMessageTopicName, std::string("/detection/compiled_ros_msg"));
+  nodeHandle_.param("publishers/compiled_message1/queue_size", compiledMessageTopicSize, 1000);
+  nodeHandle_.param("publishers/compiled_message1/latch", compiledMessageTopicLatch, false);
+
+  nodeHandle_.param("publishers/compiled_message2/topic", compiledMessageTopicName2, std::string("/detection/compiled_ros_msg2"));
+  nodeHandle_.param("publishers/compiled_message2/queue_size", compiledMessageTopicSize2, 1000);
+  nodeHandle_.param("publishers/compiled_message2/latch", compiledMessageTopicLatch2, false);
+
+  nodeHandle_.param("publishers/compiled_message3/topic", compiledMessageTopicName3, std::string("/detection/compiled_ros_msg3"));
+  nodeHandle_.param("publishers/compiled_message3/queue_size", compiledMessageTopicSize3, 1000);
+  nodeHandle_.param("publishers/compiled_message3/latch", compiledMessageTopicLatch3, false);
+
+  nodeHandle_.param("publishers/compiled_message4/topic", compiledMessageTopicName4, std::string("/detection/compiled_ros_msg4"));
+  nodeHandle_.param("publishers/compiled_message4/queue_size", compiledMessageTopicSize4, 1000);
+  nodeHandle_.param("publishers/compiled_message4/latch", compiledMessageTopicLatch4, false);    
 
   //imageSubscriber_ = imageTransport_.subscribe(cameraTopicName, cameraQueueSize, &YoloObjectDetector::cameraCallback,this);    //*********************************************************
   camOneSubscriber_ = imageTransport_.subscribe(camOneTopicName, camOneTopicSize, &YoloObjectDetector::cameraOneCallback, this);
@@ -204,6 +228,9 @@ void YoloObjectDetector::init() {
   detectionImagePublisher_ = nodeHandle_.advertise<sensor_msgs::Image>(detectionImageTopicName, detectionImageQueueSize, detectionImageLatch);
 
   compiledMessagePublisher_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName, compiledMessageTopicSize, compiledMessageTopicLatch);
+  compiledMessagePublisher2_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName2, compiledMessageTopicSize2, compiledMessageTopicLatch2);
+  compiledMessagePublisher3_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName3, compiledMessageTopicSize3, compiledMessageTopicLatch3);
+  compiledMessagePublisher4_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName4, compiledMessageTopicSize4, compiledMessageTopicLatch4);
 
   // Action servers.
   std::string checkForObjectsActionName;
@@ -246,7 +273,6 @@ void YoloObjectDetector::drawBoxes(cv::Mat &inputFrame, std::vector<RosBox_> &ro
     if(objectLabel != "person"){
       continue;
     }
-    std::cout<<objectLabel<<std::endl;
     boundingBox.Class = objectLabel;
     boundingBox.probability = rosBoxes[i].prob;
     boundingBox.xmin = xmin;
@@ -421,7 +447,7 @@ bool YoloObjectDetector::isCheckingForObjects() const {
 }
 
 bool YoloObjectDetector::publishDetectionImage(const cv::Mat& detectionImage, detection_msgs::CompiledMessage message) {
-  if (detectionImagePublisher_.getNumSubscribers() < 1) {
+  if (compiledMessagePublisher_.getNumSubscribers() < 1) {
     return false;
   }
   
@@ -434,7 +460,16 @@ bool YoloObjectDetector::publishDetectionImage(const cv::Mat& detectionImage, de
   message.image = *cvImage.toImageMsg();
   std::cout<<"DARKNET IS PUBLISHING"<<std::endl;
   detectionImagePublisher_.publish(*cvImage.toImageMsg());
-  compiledMessagePublisher_.publish(message);
+
+  if(message.robotId == 1)
+    compiledMessagePublisher_.publish(message);
+  else if(message.robotId == 2)
+    compiledMessagePublisher2_.publish(message);
+  else if(message.robotId == 3)
+    compiledMessagePublisher3_.publish(message);
+  else
+    compiledMessagePublisher4_.publish(message);
+
   ROS_DEBUG("Detection image has been published.");
   return true;
 }

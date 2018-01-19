@@ -186,6 +186,9 @@ class YoloObjectDetector
   image_transport::Subscriber camThreeSubscriber_;
   image_transport::Subscriber camFourSubscriber_;
   ros::Publisher compiledMessagePublisher_;
+  ros::Publisher compiledMessagePublisher2_;
+  ros::Publisher compiledMessagePublisher3_;
+  ros::Publisher compiledMessagePublisher4_;
 
   //! Detected objects.
   std::vector< std::vector<RosBox_> > rosBoxes_;
