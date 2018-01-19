@@ -9,43 +9,35 @@ namespace sarwai {
 
   VisualDetectionTracker::VisualDetectionTracker() {
     this->nh_ = new ros::NodeHandle();
-    this->image_frame_sub_ = this->nh_->subscribe(
-        "darknet_ros/detection_image", 1, &VisualDetectionTracker::ImageCallback, this);
-    this->bounding_box_sub_ = this->nh_->subscribe(
-        "darknet_ros/bounding_boxes", 1, &VisualDetectionTracker::ArrayReceived, this);
-    this->detection_flag_sub_ = this->nh_->subscribe(
-        "darknet_ros/found_object", 1, &VisualDetectionTracker::ObjectDetected, this);
+
+    std::string topic;
+    //nh_->getParam("topic", topic);
+    //std::cout<<topic<<" hello";
         
-    this->detection_match_sub_ = this->nh_->subscribe(
-        "detection_match", 1000, &VisualDetectionTracker::DetectionMatchCallback, this);
+    // this->detection_match_sub_ = this->nh_->subscribe(
+    //     "detection_match", 1000, &VisualDetectionTracker::DetectionMatchCallback, this);
 
-    // this->visual_detection_bb_ = this->nh_->advertise<darknet_ros_msgs::BoundingBoxes>(
-    //     "visual_detection_bb", 1000);
-    // this->visual_detection_image_ = this->nh_->advertise<sensor_msgs::Image>(
-    //     "visual_detection_image", 1000);
-    // this->visual_detection_flag_ = this->nh_->advertise<std_msgs::Int8>(
-    //     "visual_detection_flag", 1000);
-
-     this->compiled_messages_ = this->nh_->advertise<detection_msgs::CompiledMessage>(
-         "compiled_ros_message", 1000);
+    this->compiled_msg_ = this->nh_->subscribe(
+       "/detection/compiled_ros_msg", 10, &VisualDetectionTracker::ImageCallback, this);
 
     this->detection_id_image_pub_ = nh_->advertise<detection_msgs::DetectionIdImage>(
         "labeled_detection_images", 100);
 
+    this->compiled_messages_ = this->nh_->advertise<detection_msgs::CompiledMessage>(
+        "compiled_ros_message", 1000);        
+
     this->tracking_algorithm_ = TrackingAlgorithm::BOOSTING;
   }
 
-  void VisualDetectionTracker::ArrayReceived(const darknet_ros_msgs::BoundingBoxes &msg) {
-    this->bounding_boxes_matrix_.push(msg.boundingBoxes);
-  }
+  void VisualDetectionTracker::ImageCallback(const detection_msgs::CompiledMessageConstPtr& msg){
+    std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = msg->boxes.boundingBoxes;
+    sensor_msgs::Image master_image = msg->image;
+    unsigned robotId = msg->robotId;
 
-  void VisualDetectionTracker::ImageCallback(const sensor_msgs::ImageConstPtr &msg) {
-    this->video_image_frames_.push(*msg);
+    this->bounding_boxes_matrix_.push(bounding_boxes);
+    this->video_image_frames_.push(master_image);
+    std::cout<<"Tracker is teh bestsssss"<<std::endl;
     Process();
-  }
-
-  void VisualDetectionTracker::ObjectDetected(const std_msgs::Int8 &msg) {
-    this->detection_flag_.push(msg.data);
   }
 
   void VisualDetectionTracker::DetectionMatchCallback(const detection_msgs::DetectionMatch   &msg) {
@@ -78,15 +70,10 @@ namespace sarwai {
       if (this->video_image_frames_.size() > 0) {
         this->video_image_frames_.pop();
       }
-
-      if (this->detection_flag_.size() > 0) {
-        this->detection_flag_.pop();
-      }
     }
 
     while (this->video_image_frames_.size() > 0 &&
-        this->bounding_boxes_matrix_.size() > 0 && 
-        this->detection_flag_.size() > 0) {
+        this->bounding_boxes_matrix_.size() > 0 ) { //&& this->detection_flag_.size() > 0
 
       std::vector<cv::Rect2d> detection_bbs;
       std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = bounding_boxes_matrix_.front();
@@ -111,16 +98,10 @@ namespace sarwai {
       outmsg.image = this->video_image_frames_.front();
       compiled_messages_.publish(outmsg);
       std::cout<<"Tracker is publishing"<<std::endl;
-      
-      //msg.data = this->detection_flag_.front();
-      //visual_detection_bb_.publish(out_going_bb);
-      //visual_detection_image_.publish(this->video_image_frames_.front());
-      //visual_detection_flag_.publish(msg);
 
       this->out_going_bb.boundingBoxes.clear();
       this->video_image_frames_.pop();
       this->bounding_boxes_matrix_.pop();
-      this->detection_flag_.pop();
     }
   }
 
