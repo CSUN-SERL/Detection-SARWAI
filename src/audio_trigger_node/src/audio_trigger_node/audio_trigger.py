@@ -17,7 +17,7 @@ activatedLocations = {}
 
 #Set up icecast shout service
 s = shout.Shout()
-s.host = localhost
+s.host = 'localhost'
 s.port = 8050
 s.password = 'SERLstream'
 s.mount = '/BuddhaStream'
@@ -49,6 +49,7 @@ def bgLoop():
                 continue
             s.send(abuf)
             s.sync()
+
 
 
 def main():
@@ -87,11 +88,12 @@ def main():
         trigger_list[key] = trigger
 
     for key,value in query_info_yaml['queries'].iteritems():
-        query_list[key] = QueryData(**query_info_yaml['queries'][key])
+        #query_list[key] = QueryData(**query_info_yaml['queries'][key])
+        query_list[key] = value
 
     # Begin background audio stream
-    pbg = Process(target = bgLoop)
-    pbg.start()
+    # pbg = Process(target = bgLoop)
+    # pbg.start()
 
 
     #IGNORING POSE FAKER FOR NOW
