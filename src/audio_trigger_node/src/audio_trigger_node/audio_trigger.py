@@ -5,19 +5,50 @@ import sys
 from nav_msgs.msg import Odometry
 from multiprocessing import Process
 from audio_trigger_node.msg import Trigger
+from detection_msgs.msg import AudioDetection
+import shout
 
 # Topic used to send logging message
-pubtopic = '/detection_sarwai/detection_audiodetection'
+pubtopic = '/sarwai_detection/detection_audio'
+pub = rospy.Publisher(pubtopic, AudioDetection, queue_size = 1000)
 
 # found locations
 activatedLocations = {}
 
-# define the class for our query data
-class QueryData:
-    def __init__(self, confidence, false_positive, file_name):
-        self.confidence = confidence
-        self.false_positive = false_positive
-        self.file_name = file_name
+#Set up icecast shout service
+s = shout.Shout()
+s.host = localhost
+s.port = 8050
+s.password = 'SERLstream'
+s.mount = '/BuddhaStream'
+s.format = 'mp3'
+s.protocol = 'http'
+# s.audio_info = {
+#   shout.SHOUT_AI_BITRATE : ,
+#   shout.SHOUT_AI_SAMPLERATE : ,
+#   shout.SHOUT_AI_CHANNELS : ,
+#   shout.SHOUT_AI_QUALITY : 
+# }
+
+# s.open()
+
+# Define function to loop background file to icecast
+def bgLoop():
+    global bg_playing
+    bg_playing = True
+
+    bgfilename = '/audio/audio_loop.mp3'
+    bg = open(bgfilename)
+
+    while True:
+        if bg_playing:
+            abuf = f.read(4096)
+            if len(abuf) == 0:
+                bg.close()
+                bg = open(bgfilename)
+                continue
+            s.send(abuf)
+            s.sync()
 
 
 def main():
@@ -58,18 +89,22 @@ def main():
     for key,value in query_info_yaml['queries'].iteritems():
         query_list[key] = QueryData(**query_info_yaml['queries'][key])
 
+    # Begin background audio stream
+    pbg = Process(target = bgLoop)
+    pbg.start()
+
+
     #IGNORING POSE FAKER FOR NOW
     #subscribe to pose_mock
     #publish pose_mock
 #    p11 = Process(target = pose_mock(1))
 #    p12 = Process(target = pose_mock(2))
-
 #    p11.start()
 #    p12.start()
 
-    p21 = Process(target = listen_for_pose, args = ('/robot1/odometry/filtered',))
-    p22 = Process(target = listen_for_pose, args = ('/robot2/odometry/filtered',))
-
+    # Begin monitoring robot location
+    p21 = Process(target = listen_for_pose, args = ('/robot1/odometry/filtered',0))
+    p22 = Process(target = listen_for_pose, args = ('/robot2/odometry/filtered',1))
     p21.start()
     p22.start()
 
@@ -116,8 +151,7 @@ def pose_mock(robot_num):
         pub_test.publish(msg)
         r.sleep()
 
-
-def listen_for_pose(topic):
+def listen_for_pose(topic, robotId):
     while True:
         # get latest odometry message from specified topic
         msg = rospy.wait_for_message(topic, Odometry)
@@ -147,10 +181,21 @@ def listen_for_pose(topic):
 
         #get query associated with location
         querynum = trigger_list[currentzone][query]
-        query = QueryData(**querylist['query' + str(querynum)])
+        query = querylist['query' + str(querynum)]
+
+        #Cast audio file to icecast
+        # TODO
 
         #publish query to topic for logging in audio logger
-        # TODO
+        audiomsg = AudioDetection()
+        audiomsg.robotId = robotId
+        audiomsg.confidence = query['confidence']
+        audiomsg.filename = query['file_name']
+        audiomsg.robotX = pose[0]
+        audiomsg.robotY = pose[1]
+
+        pub.publish(audiomsg)
+
 
 
 if __name__ == "__main__":
