@@ -134,9 +134,6 @@ def trigger_callback(data):
 
     #stream audio to icecast to icecast
 
-
-
-
 #publishing node for testing
 def pose_mock(robot_num):
 
@@ -152,6 +149,19 @@ def pose_mock(robot_num):
     while not rospy.is_shutdown():
         pub_test.publish(msg)
         r.sleep()
+
+def stream_audio_query(file_path):
+    bg_playing = False
+    afile = open(file_path)
+    
+    abuf = afile.read(4096)
+    while len(abuf) != 0:
+        s.send(abuf)
+        s.sync()
+        abuf = afile.read(4096)
+    
+    afile.close()
+    bg_playing = True
 
 def listen_for_pose(topic, robotId):
     while True:
@@ -186,7 +196,8 @@ def listen_for_pose(topic, robotId):
         query = querylist['query' + str(querynum)]
 
         #Cast audio file to icecast
-        # TODO
+        #TODO: Should this be in a separate process?
+        stream_audio_query(query['file_name'])
 
         #publish query to topic for logging in audio logger
         audiomsg = AudioDetection()
