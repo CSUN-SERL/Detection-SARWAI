@@ -241,7 +241,12 @@ void YoloObjectDetector::drawBoxes(cv::Mat &inputFrame, std::vector<RosBox_> &ro
     int ymin = (rosBoxes[i].y - rosBoxes[i].h/2)*frameHeight_;
     int xmax = (rosBoxes[i].x + rosBoxes[i].w/2)*frameWidth_;
     int ymax = (rosBoxes[i].y + rosBoxes[i].h/2)*frameHeight_;
-
+    
+    //Filters everything out besides Humans
+    if(objectLabel != "person"){
+      continue;
+    }
+    std::cout<<objectLabel<<std::endl;
     boundingBox.Class = objectLabel;
     boundingBox.probability = rosBoxes[i].prob;
     boundingBox.xmin = xmin;
@@ -419,7 +424,7 @@ bool YoloObjectDetector::publishDetectionImage(const cv::Mat& detectionImage, de
   if (detectionImagePublisher_.getNumSubscribers() < 1) {
     return false;
   }
-
+  
   cv_bridge::CvImage cvImage;
   cvImage.header.stamp = ros::Time::now();
   cvImage.header.frame_id = "detection_image";
@@ -427,8 +432,8 @@ bool YoloObjectDetector::publishDetectionImage(const cv::Mat& detectionImage, de
   cvImage.image = detectionImage;
 
   message.image = *cvImage.toImageMsg();
-  //detectionImagePublisher_.publish(*cvImage.toImageMsg());
-  std::cout << "publishing" << std::endl;
+  std::cout<<"DARKNET IS PUBLISHING"<<std::endl;
+  detectionImagePublisher_.publish(*cvImage.toImageMsg());
   compiledMessagePublisher_.publish(message);
   ROS_DEBUG("Detection image has been published.");
   return true;

@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <stdlib.h>
+#include <iostream>
 
 namespace sarwai {
 
@@ -109,6 +110,8 @@ namespace sarwai {
       outmsg.boxes = out_going_bb;
       outmsg.image = this->video_image_frames_.front();
       compiled_messages_.publish(outmsg);
+      std::cout<<"Tracker is publishing"<<std::endl;
+      
       //msg.data = this->detection_flag_.front();
       //visual_detection_bb_.publish(out_going_bb);
       //visual_detection_image_.publish(this->video_image_frames_.front());
