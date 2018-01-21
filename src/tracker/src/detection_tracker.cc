@@ -9,22 +9,19 @@ namespace sarwai {
 
   VisualDetectionTracker::VisualDetectionTracker() {
     this->nh_ = new ros::NodeHandle();
+    this->_nh =  new ros::NodeHandle("~");
 
-    std::string topic;
-    //nh_->getParam("topic", topic);
-    //std::cout<<topic<<" hello";
-        
-    // this->detection_match_sub_ = this->nh_->subscribe(
-    //     "detection_match", 1000, &VisualDetectionTracker::DetectionMatchCallback, this);
+    std::string topic_name_;
+    _nh -> getParam("topic_name_", topic_name_);
+    
+    //"/detection/compiled_ros_msg"
 
-    this->compiled_msg_ = this->nh_->subscribe(
-       "/detection/compiled_ros_msg", 10, &VisualDetectionTracker::ImageCallback, this);
+    //topic_name_ can be used in terminal to set parameters of choice
+    this->compiled_msg_ = this->nh_->subscribe(topic_name_ , 10, &VisualDetectionTracker::ImageCallback, this);
 
-    this->detection_id_image_pub_ = nh_->advertise<detection_msgs::DetectionIdImage>(
-        "labeled_detection_images", 100);
+    this->detection_id_image_pub_ = nh_->advertise<detection_msgs::DetectionIdImage>("labeled_detection_images", 100);
 
-    this->compiled_messages_ = this->nh_->advertise<detection_msgs::CompiledMessage>(
-        "compiled_ros_message", 1000);        
+    this->compiled_messages_ = this->nh_->advertise<detection_msgs::CompiledMessage>("compiled_ros_message", 1000);        
 
     this->tracking_algorithm_ = TrackingAlgorithm::BOOSTING;
   }
@@ -36,8 +33,7 @@ namespace sarwai {
 
     this->bounding_boxes_matrix_.push(bounding_boxes);
     this->video_image_frames_.push(master_image);
-    std::cout<<"Tracker is teh bestsssss"<<std::endl;
-    Process();
+    Process(robotId);
   }
 
   void VisualDetectionTracker::DetectionMatchCallback(const detection_msgs::DetectionMatch   &msg) {
@@ -63,7 +59,7 @@ namespace sarwai {
    * Process controls the process of receiving messages on incoming ROS topics
    * and the publishing of data after running the tracking redundancy detection system
    */
-  void VisualDetectionTracker::Process() {
+  void VisualDetectionTracker::Process(int roboId) {
     // This check only lets this function run if there are also elements in the detection flag and bounding box queues
     if (this->bounding_boxes_matrix_.size() == 0) {
       // If you aren't ready to process all 3 queues, we have to prune them to make sure they don't get backlogged
@@ -93,7 +89,7 @@ namespace sarwai {
       // Send data along in the ROS node chain
       //std_msgs::Int8 msg;
       //darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
-      outmsg.robotId = 0;
+      outmsg.robotId = roboId;
       outmsg.boxes = out_going_bb;
       outmsg.image = this->video_image_frames_.front();
       compiled_messages_.publish(outmsg);

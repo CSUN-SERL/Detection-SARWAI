@@ -41,6 +41,8 @@ namespace sarwai {
     
   private:
     ros::NodeHandle* nh_;
+    ros::NodeHandle* _nh; // to get the private params
+
     TrackingAlgorithm tracking_algorithm_;
     darknet_ros_msgs::BoundingBoxes out_going_bb;
 
@@ -65,7 +67,7 @@ namespace sarwai {
     void ImageCallback(const detection_msgs::CompiledMessageConstPtr& msg);
     void DetectionMatchCallback(const detection_msgs::DetectionMatch &msg);
     void PropagateToDetectionComparer(cv::Mat, cv::Rect, DetectionFrameId*, bool);
-    void Process();
+    void Process(int RoboId);
     bool CheckIfRectMatchesRectVector(cv::Rect2d, std::vector<cv::Rect2d>);
     float ComputeFractionOfIntersection(cv::Rect2d, cv::Rect2d);
     float ComputeRectArea(cv::Rect2d);
