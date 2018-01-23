@@ -1,11 +1,16 @@
+#!/usr/bin/env python
+
 import rospy
 import yaml
 import sys
 
+from rospy import ROSException
 from nav_msgs.msg import Odometry
-from multiprocessing import Process
-from audio_trigger_node.msg import Trigger
-from detection_msgs.msg import AudioDetection
+import multiprocessing
+from ctypes import c_bool
+#from multiprocessing import Process
+#from audio_trigger_node.msg import Trigger
+#from detection_msgs.msg import AudioDetection
 import shout
 
 # Topic used to send logging message
@@ -17,11 +22,13 @@ activatedLocations = {}
 #Set up icecast shout service
 s = shout.Shout()
 s.host = 'localhost'
+# s.port = 8050
+# s.password = 'SERLstream'
 s.port = 8050
-s.password = 'SERLstream'
-s.mount = '/BuddhaStream'
+s.password = 'hackme'
+s.mount = 'testmount'
 s.format = 'mp3'
-s.protocol = 'http'
+#s.protocol = 'http'
 # s.audio_info = {
 #   shout.SHOUT_AI_BITRATE : ,
 #   shout.SHOUT_AI_SAMPLERATE : ,
@@ -29,27 +36,35 @@ s.protocol = 'http'
 #   shout.SHOUT_AI_QUALITY : 
 # }
 
-# s.open()
+s.open()
 
 # Define function to loop background file to icecast
+
+## Should bg loop be moved to audio_streamer?
+
+bg_playing = multiprocessing.Value(c_bool, True)
+
 def bgLoop():
-    global bg_playing
-    bg_playing = True
+    bgfilename = 'firebackground.mp3'
+    bg = open(bgfilename, 'rb')
 
-    bgfilename = '/audio/audio_loop.mp3'
-    bg = open(bgfilename)
-
+    nbuf = bg.read(4096)
     while True:
-        if bg_playing:
-            abuf = f.read(4096)
-            if len(abuf) == 0:
+        print 'LOOP PLAYING ' + str(bg_playing.value)
+        if bg_playing.value:
+            buf = nbuf
+            nbuf = bg.read(4096)
+            if len(buf) == 0:
+                print("looping bg")
                 bg.close()
                 bg = open(bgfilename)
                 continue
-            s.send(abuf)
+            s.send(buf)
             s.sync()
-
-
+            print 'bg while'
+        else:
+            print 'bg else'
+            continue
 
 def main():
     #rospy.init_node('listen_for_pose',anonymous = True)
@@ -82,7 +97,6 @@ def main():
     # location name : Location_data object
 
     for key,value in location_info_yaml["locations"].iteritems():
-        print key
         trigger = trigger_info(**location_info_yaml["locations"][key])
         trigger_list[key] = trigger
 
@@ -91,8 +105,8 @@ def main():
         query_list[key] = value
 
     # Begin background audio stream
-    # pbg = Process(target = bgLoop)
-    # pbg.start()
+    pbg = multiprocessing.Process(target = bgLoop)
+    pbg.start()
 
 
     #IGNORING POSE FAKER FOR NOW
@@ -104,122 +118,102 @@ def main():
 #    p12.start()
 
     # Begin monitoring robot location
-    p21 = Process(target = listen_for_pose, args = ('/robot1/odometry/filtered',1))
-    p22 = Process(target = listen_for_pose, args = ('/robot2/odometry/filtered',2))
+    p21 = multiprocessing.Process(target = listen_for_pose, args = ('/robot1/odometry/filtered',1))
+    p22 = multiprocessing.Process(target = listen_for_pose, args = ('/robot2/odometry/filtered',2))
     p21.start()
     p22.start()
 
 
 
-def trigger_callback(data):
-
-    pub_trigger = rospy.Publisher('/audio_trigger',Trigger,queue_size=100 )
-
-    x = data.pose.pose.position.x
-    y = data.pose.pose.position.y
-    for key,trigger in trigger_list.iteritems():
-        if x >= trigger.x and y >= trigger.y and x <= trigger.x+trigger.w and y <= trigger.y+trigger.h:
-            print "husky in box ", key
-            msg = Trigger()
-            msg.trigger_location = key
-            msg.audio_file = trigger.audio_path
-
-    #distance formula
-    #for future implementation of volume as a function
-    #of distace from center of trigger point
-    msg.distance_from_center = pow(pow(x - (trigger.x+.5*(trigger.w)),2) + pow(y - (trigger.y+.5*(trigger.h)),2),.5)
-    pub_trigger.publish(msg)
-
-
-    #stream audio to icecast to icecast
-
-#publishing node for testing
-def pose_mock(robot_num):
-
-    pub_test = rospy.Publisher('/pose_mock_'+str(robot_num),Odometry,queue_size = 1000)
-    #rospy.init_node('pose_mock')
-    r = rospy.Rate(10)
-
-    msg = Odometry()
-    msg.pose.pose.position.x = 10+robot_num
-    msg.pose.pose.position.y = 20+robot_num
-
-    print "publisher start"
-    while not rospy.is_shutdown():
-        pub_test.publish(msg)
-        r.sleep()
-
 def stream_audio_query(file_path):
-    bg_playing = False
-    afile = open(file_path)
+    bg_playing.value = False
+    try:
+        afile = open(file_path)
+    except:
+        print("false positive")
+        bg_playing.value = True
+        return
     
-    abuf = afile.read(4096)
-    while len(abuf) != 0:
-        s.send(abuf)
+    nbuf = afile.read(4096)
+    while True:
+        print 'STREAM PLAYING ' + str(bg_playing.value)
+        buf = nbuf
+        nbuf = afile.read(4096)
+        if len(buf) == 0:
+            print 'help break'
+            break
+        s.send(buf)
         s.sync()
-        abuf = afile.read(4096)
+        print 'help looping'
     
     afile.close()
-    bg_playing = True
+    bg_playing.value = True
+
+def trigger_callback(msg, args):
+
+    #pub_trigger = rospy.Publisher('/audio_trigger',Trigger,queue_size=100 )
+    #pub = rospy.Publisher(pubtopic, AudioDetection, queue_size = 1000)
+
+    pos = (msg.pose.pose.position.x, msg.pose.pose.position.y)
+    currentzone = ''
+    #check if odom x and y are in a trigger zone
+    for trigger,tval in trigger_list.iteritems():
+        if ( (tval.x < pos[0]) &
+                (tval.y < pos[1]) &
+                ((tval.x + tval.w) > pos[0]) &
+                ((tval.y + tval.h) > pos[1]) ):
+            currentzone = trigger
+            break
+    # if not, leave
+    else:
+        return
+
+    #check if location has been activated before
+    if currentzone in activatedLocations:
+        #if so, continue
+        return
+
+    #mark location as activated
+    activatedLocations[currentzone] = True
+
+    #get query associated with location
+    querynum = trigger_list[currentzone].q
+    query = query_list['query' + str(querynum)]
+
+    #publish query to topic for logging in audio logger
+    # audiomsg = AudioDetection()
+    # audiomsg.robotId = robotId
+    # audiomsg.confidence = query['confidence']
+    # audiomsg.filename = query['file_name']
+    # audiomsg.robotX = pos[0]
+    # audiomsg.robotY = pos[1]
+
+    #pub.publish(audiomsg)
+
+    #Cast audio file to icecast
+    #TODO: Should this be in a separate process?
+    stream_audio_query('audio/' + str(query['file_name']))
+
+#publishing node for testing
+# def pose_mock(robot_num):
+
+#     pub_test = rospy.Publisher('/pose_mock_'+str(robot_num),Odometry,queue_size = 1000)
+#     #rospy.init_node('pose_mock')
+#     r = rospy.Rate(10)
+
+#     msg = Odometry()
+#     msg.pose.pose.position.x = 10+robot_num
+#     msg.pose.pose.position.y = 20+robot_num
+
+#     while not rospy.is_shutdown():
+#         pub_test.publish(msg)
+#         r.sleep()
 
 def listen_for_pose(topic, robotId):
     rospy.init_node('listen_for_pose', anonymous=True)
-    pub = rospy.Publisher(pubtopic, AudioDetection, queue_size = 1000)
-    while True:
-        # get latest odometry message from specified topic
-        print "Listening for pose on " + topic
-        msg = rospy.wait_for_message(topic, Odometry)
-        print "Got pose " + str(robotId)
-
-        #get x and y from message
-        pos = (msg.pose.pose.position.x, msg.pose.pose.position.y)
-
-        currentzone = ''
-        #check if odom x and y are in a trigger zone
-        for trigger,tval in trigger_list.iteritems():
-            print str(tval.x) + ' ' + str(tval.y) + ' ' + str(tval.w) + ' ' + str(tval.h)
-            print str(pos[0]) + ' ' + str(pos[1])
-            if ( (tval.x < pos[0]) &
-                 (tval.y < pos[1]) &
-                 ((tval.x + tval.w) > pos[0]) &
-                 ((tval.y + tval.h) > pos[1]) ):
-                currentzone = trigger
-                print "breaking"
-                break
-            print 'foring'
-        #if not, continue
-        else:
-            print "first continuing"
-            continue
-        #check if location has been activated before
-        if currentzone in activatedLocations:
-            #if so, continue
-            print "second continuing"
-            continue
-
-        #mark location as activated
-        activatedLocations[currentzone] = True
-
-        #get query associated with location
-        querynum = trigger_list[currentzone].q
-        query = query_list['query' + str(querynum)]
-
-        #publish query to topic for logging in audio logger
-        audiomsg = AudioDetection()
-        audiomsg.robotId = robotId
-        audiomsg.confidence = query['confidence']
-        audiomsg.filename = query['file_name']
-        audiomsg.robotX = pos[0]
-        audiomsg.robotY = pos[1]
-
-        print "Publishing"
-        pub.publish(audiomsg)
-
-        #Cast audio file to icecast
-        #TODO: Should this be in a separate process?
-        stream_audio_query(query['file_name'])
-
-
+    print ("subscribing for " + str(robotId))
+    rospy.Subscriber(topic, Odometry, trigger_callback, (robotId,))
+    rospy.spin()
 
 if __name__ == "__main__":
     main()
