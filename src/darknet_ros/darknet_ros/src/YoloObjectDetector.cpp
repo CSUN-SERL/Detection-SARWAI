@@ -458,7 +458,6 @@ bool YoloObjectDetector::publishDetectionImage(const cv::Mat& detectionImage, de
   cvImage.image = detectionImage;
 
   message.image = *cvImage.toImageMsg();
-  std::cout<<"DARKNET IS PUBLISHING"<<std::endl;
   detectionImagePublisher_.publish(*cvImage.toImageMsg());
 
   if(message.robotId == 1)

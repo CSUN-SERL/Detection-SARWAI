@@ -93,7 +93,6 @@ namespace sarwai {
       outmsg.boxes = out_going_bb;
       outmsg.image = this->video_image_frames_.front();
       compiled_messages_.publish(outmsg);
-      std::cout<<"Tracker is publishing"<<std::endl;
 
       this->out_going_bb.boundingBoxes.clear();
       this->video_image_frames_.pop();

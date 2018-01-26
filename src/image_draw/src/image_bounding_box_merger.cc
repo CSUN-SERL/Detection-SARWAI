@@ -14,19 +14,12 @@ namespace sarwai {
     this->image_frame_sub_ = this->nh_->subscribe(
       "compiled_ros_message", 10, &ImageBoundingBoxMerger::RunImageProcess, this);
 
-    std::cout << "sub to compiled_ros_msg" << std::endl;
 
     //Publishes to visual_detection topic
       this->visual_detection_pub_ = this->nh_->advertise<detection_msgs::ProcessedVisualDetection>(
         "/sarwai_detection/detection_processeddetection", 1000);
   }
   
-  /*void ImageBoundingBoxMerger::RawImageCallback(const sensor_msgs::ImageConstPtr& msg) {
-    //if (this->tracking_handler_->HasActiveTrackers()) {
-      //ROS_INFO("Sending image to tracker");
-      this->tracking_handler_->TrackFrame(cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image);
-    //}
-  }*/
 
   ImageBoundingBoxMerger::~ImageBoundingBoxMerger() {
     //empty
@@ -44,7 +37,6 @@ namespace sarwai {
   }
 
   void ImageBoundingBoxMerger::RunImageProcess(const detection_msgs::CompiledMessageConstPtr& msg) {
-    std::cout << "CALLING" << std::endl;
     std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = msg->boxes.boundingBoxes;
     sensor_msgs::Image master_image = msg->image;
     unsigned robotId = msg->robotId;
