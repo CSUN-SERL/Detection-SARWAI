@@ -21,19 +21,19 @@ roslaunch darknet_ros darknet_ros.launch &
 sleep 5
 clear
 roslaunch tracker tracker.launch topic_name_:=/detection/compiled_ros_msg name:=track1 &
-sleep 3
+sleep 2
 clear
 roslaunch tracker tracker.launch topic_name_:=/detection/compiled_ros_msg2 name:=track2 &
-sleep 3
+sleep 2
 clear
 roslaunch tracker tracker.launch topic_name_:=/detection/compiled_ros_msg3 name:=track3 &
-sleep 3
+sleep 2
 clear
 roslaunch tracker tracker.launch topic_name_:=/detection/compiled_ros_msg4 name:=track4 &
-sleep 3
+sleep 2
 clear
 rosrun image_draw image_draw_node &
-sleep 3
+sleep 2
 clear
 rosrun detection_logger visual_logger &
 
