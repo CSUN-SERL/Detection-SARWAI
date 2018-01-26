@@ -6,11 +6,12 @@
 
 namespace sarwai {
 
-    #define INIT_AUDIO_STRATEGY(STRATEGYNAME) public: static std::string Classname() {return #STRATEGYNAME;} static AudioLoggingStrategy * Get(){return new STRATEGYNAME;}
+    //#define INIT_AUDIO_STRATEGY(STRATEGYNAME) public: static std::string Classname() {return #STRATEGYNAME;} static AudioLoggingStrategy * Get(){return new STRATEGYNAME;}
 
     class AudioLoggingStrategy {
     public:
-        // virtual void Log(Audio data stream type, AudioMetadata boxdata) = 0;
+        AudioLoggingStrategy() = default;
+        virtual void Log(std::string audio_file_name, struct AudioMetadata boxdata) = 0;
     };
 }
 

@@ -6,6 +6,7 @@
 #include "image_logging_strategy.h"
 #include "audio_logging_strategy.h"
 #include "detection_msgs/ProcessedVisualDetection.h"
+#include "detection_msgs/AudioDetection.h"
 #include <string>
 
 namespace sarwai {
@@ -26,9 +27,10 @@ namespace sarwai {
     ImageLoggingStrategy* visual_logging_strategy_;
     AudioLoggingStrategy* audio_logging_strategy_;
 
-    void InitLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg, struct BoxMetadata &log_entry_struct);
+    void InitVisualLogEntryStruct(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg, struct BoxMetadata &log_entry);
+    void InitAudioEntryStruct(const detection_msgs::AudioDetection::ConstPtr &msg, struct AudioMetadata &log_entry);
     void ImageLogCallback(const detection_msgs::ProcessedVisualDetection::ConstPtr &msg);
-    // void AudioLogCallback(const detection_msgs::ProcessedAudioDetection::ConstPtr &msg);
+    void AudioLogCallback(const detection_msgs::AudioDetection::ConstPtr &msg);
   };
 
 };

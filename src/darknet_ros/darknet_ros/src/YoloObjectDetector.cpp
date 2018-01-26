@@ -4,6 +4,7 @@
  *  Created on: Dec 19, 2016
  *      Author: Marko Bjelonic
  *   Institute: ETH Zurich, Robotic Systems Lab
+#include <iostream>
  */
 
 // yolo object detector
@@ -152,6 +153,42 @@ void YoloObjectDetector::init() {
   int detectionImageQueueSize;
   bool detectionImageLatch;
 
+  std::string camOneTopicName;
+  std::string camTwoTopicName;
+  std::string camThreeTopicName;
+  std::string camFourTopicName;
+
+  int camOneTopicSize;
+  int camTwoTopicSize;
+  int camThreeTopicSize;
+  int camFourTopicSize;
+
+  std::string compiledMessageTopicName;
+  int compiledMessageTopicSize;
+  bool compiledMessageTopicLatch;
+
+  std::string compiledMessageTopicName2;
+  int compiledMessageTopicSize2;
+  bool compiledMessageTopicLatch2;
+
+  std::string compiledMessageTopicName3;
+  int compiledMessageTopicSize3;
+  bool compiledMessageTopicLatch3;
+
+  std::string compiledMessageTopicName4;
+  int compiledMessageTopicSize4;
+  bool compiledMessageTopicLatch4;    
+
+  nodeHandle_.param("subscribers/robot_one/topic", camOneTopicName, std::string("/webcam1/image_raw"));
+  nodeHandle_.param("subscribers/robot_two/topic", camTwoTopicName, std::string("/webcam2/image_raw"));
+  nodeHandle_.param("subscribers/robot_three/topic", camThreeTopicName, std::string("/webcam3/image_raw"));
+  nodeHandle_.param("subscribers/robot_four/topic", camFourTopicName, std::string("/webcam4/image_raw"));
+
+  nodeHandle_.param("subscribers/robot_one/queue_size", camOneTopicSize, 1);
+  nodeHandle_.param("subscribers/robot_two/queue_size", camTwoTopicSize, 1);
+  nodeHandle_.param("subscribers/robot_three/queue_size", camThreeTopicSize, 1);
+  nodeHandle_.param("subscribers/robot_four/queue_size", camFourTopicSize, 1);
+
   nodeHandle_.param("subscribers/camera_reading/topic", cameraTopicName, std::string("/camera/image_raw")); /**********************************************/
   nodeHandle_.param("subscribers/camera_reading/queue_size", cameraQueueSize, 1);
   nodeHandle_.param("publishers/object_detector/topic", objectDetectorTopicName, std::string("found_object"));
@@ -164,10 +201,36 @@ void YoloObjectDetector::init() {
   nodeHandle_.param("publishers/detection_image/queue_size", detectionImageQueueSize, 1);
   nodeHandle_.param("publishers/detection_image/latch", detectionImageLatch, true);
 
-  imageSubscriber_ = imageTransport_.subscribe(cameraTopicName, cameraQueueSize, &YoloObjectDetector::cameraCallback,this);    //*********************************************************
+  nodeHandle_.param("publishers/compiled_message1/topic", compiledMessageTopicName, std::string("/detection/compiled_ros_msg"));
+  nodeHandle_.param("publishers/compiled_message1/queue_size", compiledMessageTopicSize, 1000);
+  nodeHandle_.param("publishers/compiled_message1/latch", compiledMessageTopicLatch, false);
+
+  nodeHandle_.param("publishers/compiled_message2/topic", compiledMessageTopicName2, std::string("/detection/compiled_ros_msg2"));
+  nodeHandle_.param("publishers/compiled_message2/queue_size", compiledMessageTopicSize2, 1000);
+  nodeHandle_.param("publishers/compiled_message2/latch", compiledMessageTopicLatch2, false);
+
+  nodeHandle_.param("publishers/compiled_message3/topic", compiledMessageTopicName3, std::string("/detection/compiled_ros_msg3"));
+  nodeHandle_.param("publishers/compiled_message3/queue_size", compiledMessageTopicSize3, 1000);
+  nodeHandle_.param("publishers/compiled_message3/latch", compiledMessageTopicLatch3, false);
+
+  nodeHandle_.param("publishers/compiled_message4/topic", compiledMessageTopicName4, std::string("/detection/compiled_ros_msg4"));
+  nodeHandle_.param("publishers/compiled_message4/queue_size", compiledMessageTopicSize4, 1000);
+  nodeHandle_.param("publishers/compiled_message4/latch", compiledMessageTopicLatch4, false);    
+
+  //imageSubscriber_ = imageTransport_.subscribe(cameraTopicName, cameraQueueSize, &YoloObjectDetector::cameraCallback,this);    //*********************************************************
+  camOneSubscriber_ = imageTransport_.subscribe(camOneTopicName, camOneTopicSize, &YoloObjectDetector::cameraOneCallback, this);
+  camTwoSubscriber_ = imageTransport_.subscribe(camTwoTopicName, camTwoTopicSize, &YoloObjectDetector::cameraTwoCallback, this);
+  camThreeSubscriber_ = imageTransport_.subscribe(camThreeTopicName, camThreeTopicSize, &YoloObjectDetector::cameraThreeCallback, this);
+  camFourSubscriber_ = imageTransport_.subscribe(camFourTopicName, camFourTopicSize, &YoloObjectDetector::cameraFourCallback, this);
+
   objectPublisher_ = nodeHandle_.advertise<std_msgs::Int8>(objectDetectorTopicName, objectDetectorQueueSize, objectDetectorLatch);
   boundingBoxesPublisher_ = nodeHandle_.advertise<darknet_ros_msgs::BoundingBoxes>(boundingBoxesTopicName, boundingBoxesQueueSize, boundingBoxesLatch);
   detectionImagePublisher_ = nodeHandle_.advertise<sensor_msgs::Image>(detectionImageTopicName, detectionImageQueueSize, detectionImageLatch);
+
+  compiledMessagePublisher_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName, compiledMessageTopicSize, compiledMessageTopicLatch);
+  compiledMessagePublisher2_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName2, compiledMessageTopicSize2, compiledMessageTopicLatch2);
+  compiledMessagePublisher3_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName3, compiledMessageTopicSize3, compiledMessageTopicLatch3);
+  compiledMessagePublisher4_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName4, compiledMessageTopicSize4, compiledMessageTopicLatch4);
 
   // Action servers.
   std::string checkForObjectsActionName;
@@ -205,7 +268,11 @@ void YoloObjectDetector::drawBoxes(cv::Mat &inputFrame, std::vector<RosBox_> &ro
     int ymin = (rosBoxes[i].y - rosBoxes[i].h/2)*frameHeight_;
     int xmax = (rosBoxes[i].x + rosBoxes[i].w/2)*frameWidth_;
     int ymax = (rosBoxes[i].y + rosBoxes[i].h/2)*frameHeight_;
-
+    
+    //Filters everything out besides Humans
+    if(objectLabel != "person"){
+      continue;
+    }
     boundingBox.Class = objectLabel;
     boundingBox.probability = rosBoxes[i].prob;
     boundingBox.xmin = xmin;
@@ -226,10 +293,13 @@ void YoloObjectDetector::drawBoxes(cv::Mat &inputFrame, std::vector<RosBox_> &ro
   }
 }
 
-void YoloObjectDetector::runYolo(cv::Mat &fullFrame, int id) {
+void YoloObjectDetector::runYolo(cv::Mat &fullFrame, int robotId, int id) {
   if(enableConsoleOutput_) {
     ROS_INFO("[YoloObjectDetector] runYolo().");
   }
+
+  detection_msgs::CompiledMessage outmsg;
+  outmsg.robotId = robotId;
 
   cv::Mat inputFrame = fullFrame.clone();
   cv::Mat inputFrame_empty = fullFrame.clone(); // Cloning live video to publish without bounding boxes
@@ -267,7 +337,22 @@ void YoloObjectDetector::runYolo(cv::Mat &fullFrame, int id) {
       if (rosBoxCounter_[i] > 0) drawBoxes(inputFrame, rosBoxes_[i],
                                              rosBoxCounter_[i], rosBoxColors_[i], classLabels_[i]);
     }
+    outmsg.boxes = boundingBoxesResults_;
     boundingBoxesPublisher_.publish(boundingBoxesResults_);
+    boundingBoxesResults_.boundingBoxes.clear();
+
+    for (int i = 0; i < numClasses_; i++) {
+      rosBoxes_[i].clear();
+      rosBoxCounter_[i] = 0;
+    }
+
+    if(viewImage_ && !darknetImageViewer_) {
+      cv::imshow(opencvWindow_, inputFrame); //inputFrame
+      cv::waitKey(waitKeyDelay_);
+    }
+
+    // Publish elevation change map.
+    if (!publishDetectionImage(inputFrame_empty, outmsg)) ROS_DEBUG("Detection image has not been broadcasted.");
   }
   else {
     std_msgs::Int8 msg;
@@ -281,23 +366,25 @@ void YoloObjectDetector::runYolo(cv::Mat &fullFrame, int id) {
     objectsActionResult.boundingBoxes = boundingBoxesResults_;
     checkForObjectsActionServer_->setSucceeded(objectsActionResult,"Send bounding boxes.");
   }
-  boundingBoxesResults_.boundingBoxes.clear();
-
-  for (int i = 0; i < numClasses_; i++) {
-     rosBoxes_[i].clear();
-     rosBoxCounter_[i] = 0;
-  }
-
-  if(viewImage_ && !darknetImageViewer_) {
-    cv::imshow(opencvWindow_, inputFrame); //inputFrame
-    cv::waitKey(waitKeyDelay_);
-  }
-
-  // Publish elevation change map.
-  if (!publishDetectionImage(inputFrame_empty)) ROS_DEBUG("Detection image has not been broadcasted.");
 }
 
-void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg) {
+void YoloObjectDetector::cameraOneCallback(const sensor_msgs::ImageConstPtr& msg) {
+  YoloObjectDetector::cameraCallback(msg, 1);
+}
+
+void YoloObjectDetector::cameraTwoCallback(const sensor_msgs::ImageConstPtr& msg) {
+  YoloObjectDetector::cameraCallback(msg, 2);
+}
+
+void YoloObjectDetector::cameraThreeCallback(const sensor_msgs::ImageConstPtr& msg) {
+  YoloObjectDetector::cameraCallback(msg, 3);
+}
+
+void YoloObjectDetector::cameraFourCallback(const sensor_msgs::ImageConstPtr& msg) {
+  YoloObjectDetector::cameraCallback(msg, 4);
+}
+
+void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg, int robotNum) {
   if(enableConsoleOutput_) {
     ROS_INFO("[YoloObjectDetector] USB image received.");
   }
@@ -316,7 +403,7 @@ void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg) {
     camImageCopy_ = cam_image->image.clone();
     frameWidth_ = cam_image->image.size().width;
     frameHeight_ = cam_image->image.size().height;
-    runYolo(cam_image->image);
+    runYolo(cam_image->image, robotNum);
   }
   return;
 }
@@ -359,14 +446,29 @@ bool YoloObjectDetector::isCheckingForObjects() const {
           !checkForObjectsActionServer_->isPreemptRequested());
 }
 
-bool YoloObjectDetector::publishDetectionImage(const cv::Mat& detectionImage) {
-  if (detectionImagePublisher_.getNumSubscribers() < 1) return false;
+bool YoloObjectDetector::publishDetectionImage(const cv::Mat& detectionImage, detection_msgs::CompiledMessage message) {
+  if (compiledMessagePublisher_.getNumSubscribers() < 1) {
+    return false;
+  }
+  
   cv_bridge::CvImage cvImage;
   cvImage.header.stamp = ros::Time::now();
   cvImage.header.frame_id = "detection_image";
   cvImage.encoding = sensor_msgs::image_encodings::BGR8;
-  cvImage.image    = detectionImage;
+  cvImage.image = detectionImage;
+
+  message.image = *cvImage.toImageMsg();
   detectionImagePublisher_.publish(*cvImage.toImageMsg());
+
+  if(message.robotId == 1)
+    compiledMessagePublisher_.publish(message);
+  else if(message.robotId == 2)
+    compiledMessagePublisher2_.publish(message);
+  else if(message.robotId == 3)
+    compiledMessagePublisher3_.publish(message);
+  else
+    compiledMessagePublisher4_.publish(message);
+
   ROS_DEBUG("Detection image has been published.");
   return true;
 }

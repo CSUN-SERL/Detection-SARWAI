@@ -35,6 +35,9 @@
 #include <darknet_ros_msgs/BoundingBox.h>
 #include <darknet_ros_msgs/CheckForObjectsAction.h>
 
+// detection_msgs
+#include <detection_msgs/CompiledMessage.h>
+
 namespace darknet_ros {
 
 //! Bounding box of the detected object.
@@ -111,13 +114,18 @@ class YoloObjectDetector
    * Run YOLO and detect obstacles.
    * @param[in] fullFrame image of current camera frame.
    */
-  void runYolo(cv::Mat &fullFrame, int id = 0);
+  void runYolo(cv::Mat &fullFrame, int robotId, int id = 0);
 
   /*!
    * Callback of camera.
    * @param[in] msg image pointer.
    */
-  void cameraCallback(const sensor_msgs::ImageConstPtr& msg);
+  void cameraCallback(const sensor_msgs::ImageConstPtr& msg, int robotId);
+
+  void cameraOneCallback(const sensor_msgs::ImageConstPtr& msg);
+  void cameraTwoCallback(const sensor_msgs::ImageConstPtr& msg);
+  void cameraThreeCallback(const sensor_msgs::ImageConstPtr& msg);
+  void cameraFourCallback(const sensor_msgs::ImageConstPtr& msg);
 
   /*!
    * Check for objects action goal callback.
@@ -139,7 +147,7 @@ class YoloObjectDetector
    * Publishes the detection image.
    * @return true if successful.
    */
-  bool publishDetectionImage(const cv::Mat& detectionImage);
+  bool publishDetectionImage(const cv::Mat& detectionImage, detection_msgs::CompiledMessage msg);
 
   //! Typedefs.
   typedef actionlib::SimpleActionServer<darknet_ros_msgs::CheckForObjectsAction> CheckForObjectsActionServer;
@@ -163,6 +171,25 @@ class YoloObjectDetector
   ros::Publisher objectPublisher_;
   ros::Publisher boundingBoxesPublisher_;
 
+  ros::Publisher objectPublisher2_;
+  ros::Publisher boundingBoxesPublisher2_;
+  
+  ros::Publisher objectPublisher3_;
+  ros::Publisher boundingBoxesPublisher3_;
+
+  ros::Publisher objectPublisher4_;
+  ros::Publisher boundingBoxesPublisher4_;
+
+
+  image_transport::Subscriber camOneSubscriber_;
+  image_transport::Subscriber camTwoSubscriber_;
+  image_transport::Subscriber camThreeSubscriber_;
+  image_transport::Subscriber camFourSubscriber_;
+  ros::Publisher compiledMessagePublisher_;
+  ros::Publisher compiledMessagePublisher2_;
+  ros::Publisher compiledMessagePublisher3_;
+  ros::Publisher compiledMessagePublisher4_;
+
   //! Detected objects.
   std::vector< std::vector<RosBox_> > rosBoxes_;
   std::vector<int> rosBoxCounter_;
@@ -183,6 +210,13 @@ class YoloObjectDetector
 
   //! Publisher of the bounding box image.
   ros::Publisher detectionImagePublisher_;
+    //! Publisher of the bounding box image.
+  ros::Publisher detectionImagePublisher2_;
+    //! Publisher of the bounding box image.
+  ros::Publisher detectionImagePublisher3_;
+    //! Publisher of the bounding box image.
+  ros::Publisher detectionImagePublisher4_;
 };
 
 } /* namespace darknet_ros*/
+

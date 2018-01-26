@@ -3,44 +3,37 @@
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <stdlib.h>
+#include <iostream>
 
 namespace sarwai {
 
   VisualDetectionTracker::VisualDetectionTracker() {
     this->nh_ = new ros::NodeHandle();
-    this->image_frame_sub_ = this->nh_->subscribe(
-        "darknet_ros/detection_image", 1, &VisualDetectionTracker::ImageCallback, this);
-    this->bounding_box_sub_ = this->nh_->subscribe(
-        "darknet_ros/bounding_boxes", 1, &VisualDetectionTracker::ArrayReceived, this);
-    this->detection_flag_sub_ = this->nh_->subscribe(
-        "darknet_ros/found_object", 1, &VisualDetectionTracker::ObjectDetected, this);
-        
-    this->detection_match_sub_ = this->nh_->subscribe(
-        "detection_match", 1000, &VisualDetectionTracker::DetectionMatchCallback, this);
+    this->_nh =  new ros::NodeHandle("~");
 
-    this->visual_detection_bb_ = this->nh_->advertise<darknet_ros_msgs::BoundingBoxes>(
-        "visual_detection_bb", 1000);
-    this->visual_detection_image_ = this->nh_->advertise<sensor_msgs::Image>(
-        "visual_detection_image", 1000);
-    this->visual_detection_flag_ = this->nh_->advertise<std_msgs::Int8>(
-        "visual_detection_flag", 1000);
-    this->detection_id_image_pub_ = nh_->advertise<detection_msgs::DetectionIdImage>(
-        "labeled_detection_images", 100);
+    std::string topic_name_;
+    _nh -> getParam("topic_name_", topic_name_);
+    
+    //"/detection/compiled_ros_msg"
+
+    //topic_name_ can be used in terminal to set parameters of choice
+    this->compiled_msg_ = this->nh_->subscribe(topic_name_ , 10, &VisualDetectionTracker::ImageCallback, this);
+
+    this->detection_id_image_pub_ = nh_->advertise<detection_msgs::DetectionIdImage>("labeled_detection_images", 100);
+
+    this->compiled_messages_ = this->nh_->advertise<detection_msgs::CompiledMessage>("compiled_ros_message", 1000);        
 
     this->tracking_algorithm_ = TrackingAlgorithm::BOOSTING;
   }
 
-  void VisualDetectionTracker::ArrayReceived(const darknet_ros_msgs::BoundingBoxes &msg) {
-    this->bounding_boxes_matrix_.push(msg.boundingBoxes);
-  }
+  void VisualDetectionTracker::ImageCallback(const detection_msgs::CompiledMessageConstPtr& msg){
+    std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = msg->boxes.boundingBoxes;
+    sensor_msgs::Image master_image = msg->image;
+    unsigned robotId = msg->robotId;
 
-  void VisualDetectionTracker::ImageCallback(const sensor_msgs::ImageConstPtr &msg) {
-    this->video_image_frames_.push(*msg);
-    Process();
-  }
-
-  void VisualDetectionTracker::ObjectDetected(const std_msgs::Int8 &msg) {
-    this->detection_flag_.push(msg.data);
+    this->bounding_boxes_matrix_.push(bounding_boxes);
+    this->video_image_frames_.push(master_image);
+    Process(robotId);
   }
 
   void VisualDetectionTracker::DetectionMatchCallback(const detection_msgs::DetectionMatch   &msg) {
@@ -66,22 +59,17 @@ namespace sarwai {
    * Process controls the process of receiving messages on incoming ROS topics
    * and the publishing of data after running the tracking redundancy detection system
    */
-  void VisualDetectionTracker::Process() {
+  void VisualDetectionTracker::Process(int roboId) {
     // This check only lets this function run if there are also elements in the detection flag and bounding box queues
     if (this->bounding_boxes_matrix_.size() == 0) {
       // If you aren't ready to process all 3 queues, we have to prune them to make sure they don't get backlogged
       if (this->video_image_frames_.size() > 0) {
         this->video_image_frames_.pop();
       }
-
-      if (this->detection_flag_.size() > 0) {
-        this->detection_flag_.pop();
-      }
     }
 
     while (this->video_image_frames_.size() > 0 &&
-        this->bounding_boxes_matrix_.size() > 0 && 
-        this->detection_flag_.size() > 0) {
+        this->bounding_boxes_matrix_.size() > 0 ) { //&& this->detection_flag_.size() > 0
 
       std::vector<cv::Rect2d> detection_bbs;
       std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = bounding_boxes_matrix_.front();
@@ -97,19 +85,18 @@ namespace sarwai {
           sensor_msgs::image_encodings::BGR8)->image,
         detection_bbs, bounding_boxes);
 
-
+      detection_msgs::CompiledMessage outmsg;
       // Send data along in the ROS node chain
-      std_msgs::Int8 msg;
-      darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
+      //std_msgs::Int8 msg;
+      //darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
+      outmsg.robotId = roboId;
+      outmsg.boxes = out_going_bb;
+      outmsg.image = this->video_image_frames_.front();
+      compiled_messages_.publish(outmsg);
 
-      msg.data = this->detection_flag_.front();
-      visual_detection_bb_.publish(out_going_bb);
-      visual_detection_image_.publish(this->video_image_frames_.front());
-      visual_detection_flag_.publish(msg);
       this->out_going_bb.boundingBoxes.clear();
       this->video_image_frames_.pop();
       this->bounding_boxes_matrix_.pop();
-      this->detection_flag_.pop();
     }
   }
 

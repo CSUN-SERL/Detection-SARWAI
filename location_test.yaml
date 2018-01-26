@@ -1,0 +1,14 @@
+#tree fomat
+locations:
+   L1:
+     x: 0
+     y: 15
+     width: 5
+     height: 7
+     audio_file: "/audio/f1.wav"
+   L2:
+     x: 1
+     y: 13
+     width: 20
+     height: 25
+     audio_file: "/audio/f2.wav"
