@@ -8,30 +8,72 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   detection_msgs
   cv_bridge
-  image_transport
+  OpenCV REQUIRED
+  # cv_bridge
+  # image_transport
 )
 
 catkin_package(
-  CATKIN_DEPENDS roscpp detection_msgs cv_bridge image_transport
+  CATKIN_DEPENDS
+  roscpp
+  detection_msgs
+  cv_bridge
+  # image_transport
 )
 
 include_directories(
   include
-  include/audio
-  include/visual
   ${catkin_INCLUDE_DIRS}
 )
 
+## VISUAL LOGGER
 set(
-  detection_logger_SOURCES
-  src/detection_logger.cc
-  src/logging_strategy_registry.cc
-  src/visual/local_image_logging_strategy.cc
-  src/audio/local_audio_logging_strategy.cc
-
+  VISUAL_LOGGER_SOURCES
+  src/socketio_visual_logger.cc
+  src/visual_logger.cc
+  src/logger.cc
 )
 
-## Create executables and linker dependencies
-add_executable(visual_logger src/detection_logger_node.cc ${detection_logger_SOURCES})
-target_link_libraries(visual_logger ${catkin_LIBRARIES})
-add_dependencies(visual_logger ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(
+  visual_logger_node
+  src/visual_logger_node.cc
+  ${VISUAL_LOGGER_SOURCES}
+)
+
+target_link_libraries(
+  visual_logger_node
+  sioclient
+  ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  visual_logger_node
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
+##AUDIO LOGGER
+set(
+  AUDIO_LOGGER_SOURCES
+  src/logger.cc
+  src/audio_logger.cc
+  src/socketio_audio_logger.cc
+)
+
+add_executable(
+  audio_logger_node
+  src/audio_logger_node.cc
+  ${AUDIO_LOGGER_SOURCES}
+)
+
+target_link_libraries(
+  audio_logger_node
+  sioclient
+  ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  audio_logger_node
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
