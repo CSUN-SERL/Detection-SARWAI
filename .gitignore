@@ -64,3 +64,6 @@ src/detection_logger/\.vscode/
 *.png
 
 src/\.vscode/
+
+#log folders
+log-*/

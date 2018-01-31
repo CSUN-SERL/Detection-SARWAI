@@ -22,6 +22,6 @@ namespace sarwai {
     socket_client.connect(connection_string);
 
     std::string csv_data = GenerateStringCSV(data);
-    socket_client.socket()->emit(audio_detection_event_name_, csv_data);
+    socket_client.socket("/socket.io")->emit(audio_detection_event_name_, csv_data);
   }
 }

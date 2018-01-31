@@ -11,6 +11,7 @@ namespace sarwai {
   Logger::Logger(std::string base_filepath, std::string mission_id) {
     std::string full_dir_path = base_filepath + boost::filesystem::path::preferred_separator + "log-" + mission_id;
     CreateLogDirectory(full_dir_path);
+    std::cout << "1\n";
   }
 
   Logger::Logger(std::string base_filepath) {
@@ -18,6 +19,7 @@ namespace sarwai {
     std::time_t timestamp = std::time(0);
     std::string full_dir_path = base_filepath + boost::filesystem::path::preferred_separator + "log-" + std::to_string((int)timestamp);
     CreateLogDirectory(full_dir_path);
+    std:: cout << "2\n";
   }
 
   Logger::Logger() {}
@@ -30,5 +32,7 @@ namespace sarwai {
     else {
       std::cout << full_dir_path << " already exists! Uh oh!" << "\n";
     }
+
+    log_filepath_ = full_dir_path;
   }
 }

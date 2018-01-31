@@ -12,6 +12,7 @@ namespace sarwai {
   class VisualLogger : public Logger {
     public:
     VisualLogger(std::string base_filepath);
+    VisualLogger();
     // Returns saved image filename
     std::string Log(cv::Mat image, struct VisualDetectionData detection_data);
 

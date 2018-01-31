@@ -3,6 +3,10 @@
 
 #include <string>
 
+#include "sio_client.h"
+#include "sio_message.h"
+#include "sio_socket.h"
+
 #include "visual_logger.h"
 
 namespace sarwai {
@@ -19,8 +23,11 @@ namespace sarwai {
     std::string visual_detection_event_name_;
     std::string host_addr_;
     int port_;
+    sio::client socket_client_;
 
+    void ReceiveQueryId(sio::event &);
     void SendData(struct VisualDetectionData data, std::string image_filename);
+    std::string GenerateJSONString(struct VisualDetectionData data, std::string image_filename);
   };
 }
 
