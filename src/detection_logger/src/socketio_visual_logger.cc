@@ -34,7 +34,7 @@ namespace sarwai {
   void SocketIOVisualLogger::ReceiveQueryId(sio::event &queryIdEvent) {
     int query_id = queryIdEvent.get_message()->get_int();
     std::cout << "received query id: " << query_id << "\n";
-    std::string iris_script_cmd = "python ~/programming/adaptation/clustering/evaluate.py " + query_id;
+    std::string iris_script_cmd = "python ~/programming/sarwai/adaptation/clustering/evaluate.py " + query_id;
     system(iris_script_cmd.c_str());
   }
 
