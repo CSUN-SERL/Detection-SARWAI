@@ -5,11 +5,11 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "logger.h"
+#include "detection_logger.h"
 #include "visual_detection_data.h"
 
 namespace sarwai {
-  class VisualLogger : public Logger {
+  class VisualLogger : public DetectionLogger {
     public:
     VisualLogger(std::string base_filepath);
     VisualLogger();

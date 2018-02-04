@@ -34,8 +34,10 @@ namespace sarwai {
   void SocketIOVisualLogger::ReceiveQueryId(sio::event &queryIdEvent) {
     int query_id = queryIdEvent.get_message()->get_int();
     std::cout << "received query id: " << query_id << "\n";
-    std::string iris_script_cmd = "python ~/programming/sarwai/adaptation/clustering/evaluate.py " + query_id;
-    system(iris_script_cmd.c_str());
+    std::stringstream iris_script_cmd;
+    iris_script_cmd << "python ~/programming/sarwai/adaptation/clustering/evaluate.py " << query_id << " >> visual-iris-log.txt";
+    std::cout << "script path: " << iris_script_cmd.str() << "\n";
+    system(iris_script_cmd.str().c_str());
   }
 
   void SocketIOVisualLogger::SendData(struct VisualDetectionData data, std::string image_filename) {
@@ -48,7 +50,7 @@ namespace sarwai {
   std::string SocketIOVisualLogger::GenerateJSONString(struct VisualDetectionData data, std::string image_filename) {
     std::stringstream json;
     json << "{"
-    <<"\""<<"type"<<"\":" << "\"" << "visual" << "\"" << "," 
+    <<"\""<<"type"<<"\":" << "\"" << "visual-detection" << "\"" << "," 
     <<"\""<<"timestamp"<<"\":" << "\"" << data.timestamp << "\"" << "," 
     <<"\""<<"robotId"<<"\":" << "\"" << data.robot_id << "\"" << "," 
     <<"\""<<"confidence"<<"\":" << "\"" << data.confidence_rating << "\"" << "," 

@@ -9,10 +9,8 @@
 
 namespace sarwai {
   
-  VisualLogger::VisualLogger(std::string base_filepath) : Logger(base_filepath) {
+  VisualLogger::VisualLogger(std::string base_filepath) : DetectionLogger(base_filepath) {
     image_suffix_iterator_ = 1;
-    std::cout << "3 parameter |" << base_filepath << "|\n"; 
-    std::cout << "3\n";
   }
 
   VisualLogger::VisualLogger() {}
@@ -30,7 +28,9 @@ namespace sarwai {
     
     // BURN THIS WITH FIRE!!!
     std::string command = "scp -i ~/.ssh/hmtec2.pem " + full_image_path + " ubuntu@52.24.126.225:/home/ubuntu/visual-detection-images/";
+
     system(command.c_str());
+
     return image_filename;
   }
 

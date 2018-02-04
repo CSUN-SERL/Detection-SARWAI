@@ -31,7 +31,7 @@ set(
   VISUAL_LOGGER_SOURCES
   src/socketio_visual_logger.cc
   src/visual_logger.cc
-  src/logger.cc
+  src/detection_logger.cc
 )
 
 add_executable(
@@ -43,6 +43,7 @@ add_executable(
 target_link_libraries(
   visual_logger_node
   sioclient
+  curl
   ${catkin_LIBRARIES}
 )
 
@@ -55,7 +56,7 @@ add_dependencies(
 ##AUDIO LOGGER
 set(
   AUDIO_LOGGER_SOURCES
-  src/logger.cc
+  src/detection_logger.cc
   src/audio_logger.cc
   src/socketio_audio_logger.cc
 )
@@ -69,6 +70,7 @@ add_executable(
 target_link_libraries(
   audio_logger_node
   sioclient
+  curl
   ${catkin_LIBRARIES}
 )
 
