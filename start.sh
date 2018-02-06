@@ -1,22 +1,22 @@
 roscore &
 #clear
-sleep 5
+sleep 1
 #source /opt/ros/kinetic/setup.bash
 source devel/setup.bash
-roslaunch video_stream_opencv webcam.launch camera_name:=webcam1 video_stream_provider:=0 &
+#roslaunch video_stream_opencv webcam.launch camera_name:=webcam1 video_stream_provider:=0 &
 #clear
-sleep 1
-roslaunch video_stream_opencv webcam.launch camera_name:=webcam2 video_stream_provider:=1 &
+#sleep 1
+#roslaunch video_stream_opencv webcam.launch camera_name:=webcam2 video_stream_provider:=1 &
 #clear
-sleep 1
-roslaunch video_stream_opencv webcam.launch camera_name:=webcam3 video_stream_provider:=2 &
+#sleep 1
+#roslaunch video_stream_opencv webcam.launch camera_name:=webcam3 video_stream_provider:=2 &
 #clear
-sleep 1
-roslaunch video_stream_opencv webcam.launch camera_name:=webcam4 video_stream_provider:=3 &
+#sleep 1
+#roslaunch video_stream_opencv webcam.launch camera_name:=webcam4 video_stream_provider:=3 &
 #clear
-sleep 1
+#sleep 1
 #clear
-cd Detection-SARWAI
+#cd Detection-SARWAI
 #source devel/setup.bash
 roslaunch darknet_ros darknet_ros.launch &
 sleep 5
@@ -36,6 +36,6 @@ sleep 1
 rosrun image_draw image_draw_node &
 sleep 1
 #clear
-rosrun detection_logger visual_logger
+rosrun detection_logger visual_logger_node
 
 

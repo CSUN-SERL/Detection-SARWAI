@@ -7,6 +7,8 @@
 
 namespace sarwai {
 
+int gRobotId = 0;
+
   VisualDetectionTracker::VisualDetectionTracker() {
     this->nh_ = new ros::NodeHandle();
     this->_nh =  new ros::NodeHandle("~");
@@ -17,7 +19,7 @@ namespace sarwai {
     //"/detection/compiled_ros_msg"
 
     //topic_name_ can be used in terminal to set parameters of choice
-    this->compiled_msg_ = this->nh_->subscribe(topic_name_ , 10, &VisualDetectionTracker::ImageCallback, this);
+    this->compiled_msg_ = this->nh_->subscribe(topic_name_ , 100, &VisualDetectionTracker::ImageCallback, this);
 
     this->detection_id_image_pub_ = nh_->advertise<detection_msgs::DetectionIdImage>("labeled_detection_images", 100);
 
@@ -60,6 +62,7 @@ namespace sarwai {
    * and the publishing of data after running the tracking redundancy detection system
    */
   void VisualDetectionTracker::Process(int roboId) {
+    gRobotId = roboId;
     // This check only lets this function run if there are also elements in the detection flag and bounding box queues
     if (this->bounding_boxes_matrix_.size() == 0) {
       // If you aren't ready to process all 3 queues, we have to prune them to make sure they don't get backlogged
@@ -150,9 +153,9 @@ namespace sarwai {
         MarkDetectionComplete(i);
       }
     }
-
+    std::string imshow_name = "tracking " + std::to_string(gRobotId);
     AddTrackers(image_matrix, detect_bbs, original_bb);
-    cv::imshow("tracking", image_copy);
+    cv::imshow(imshow_name, image_copy);
   }
 
   void VisualDetectionTracker::AddTrackers(const cv::Mat &image,

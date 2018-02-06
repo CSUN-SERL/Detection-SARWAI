@@ -168,15 +168,15 @@ void YoloObjectDetector::init()
   int compiledMessageTopicSize4;
   bool compiledMessageTopicLatch4;  
 
-  nodeHandle_.param("subscribers/robot_one/topic", camOneTopicName, std::string("/webcam1/image_raw"));
-  nodeHandle_.param("subscribers/robot_two/topic", camTwoTopicName, std::string("/webcam2/image_raw"));
-  nodeHandle_.param("subscribers/robot_three/topic", camThreeTopicName, std::string("/webcam3/image_raw"));
-  nodeHandle_.param("subscribers/robot_four/topic", camFourTopicName, std::string("/webcam4/image_raw"));
+  nodeHandle_.param("subscribers/robot_one/topic", camOneTopicName, std::string("/robot1/camera/rgb/image_raw"));
+  nodeHandle_.param("subscribers/robot_two/topic", camTwoTopicName, std::string("/robot2/camera/rbg/image_raw"));
+  nodeHandle_.param("subscribers/robot_three/topic", camThreeTopicName, std::string("/robot3/camera/rgb/image_raw"));
+  nodeHandle_.param("subscribers/robot_four/topic", camFourTopicName, std::string("/robot4/camera/rgb/image_raw"));
 
-  nodeHandle_.param("subscribers/robot_one/queue_size", camOneTopicSize, 1);
-  nodeHandle_.param("subscribers/robot_two/queue_size", camTwoTopicSize, 1);
-  nodeHandle_.param("subscribers/robot_three/queue_size", camThreeTopicSize, 1);
-  nodeHandle_.param("subscribers/robot_four/queue_size", camFourTopicSize, 1);
+  nodeHandle_.param("subscribers/robot_one/queue_size", camOneTopicSize, 100);
+  nodeHandle_.param("subscribers/robot_two/queue_size", camTwoTopicSize, 100);
+  nodeHandle_.param("subscribers/robot_three/queue_size", camThreeTopicSize, 100);
+  nodeHandle_.param("subscribers/robot_four/queue_size", camFourTopicSize, 100);
 
   nodeHandle_.param("subscribers/camera_reading/topic", cameraTopicName, std::string("/camera/image_raw")); /**********************************************/
   nodeHandle_.param("subscribers/camera_reading/queue_size", cameraQueueSize, 1);
@@ -691,20 +691,22 @@ void *YoloObjectDetector::publishInThread()
         darknet_ros_msgs::BoundingBox boundingBox;
 
         for (int j = 0; j < rosBoxCounter_[i]; j++) {
-          if(classLabels_[j] == "person"){
+          // if(classLabels_[j] == "person"){
               int xmin = (rosBoxes_[i][j].x - rosBoxes_[i][j].w / 2) * frameWidth_;
               int ymin = (rosBoxes_[i][j].y - rosBoxes_[i][j].h / 2) * frameHeight_;
               int xmax = (rosBoxes_[i][j].x + rosBoxes_[i][j].w / 2) * frameWidth_;
               int ymax = (rosBoxes_[i][j].y + rosBoxes_[i][j].h / 2) * frameHeight_;
-                std::cout<<"hereeeeeeeeeeeeeeeeeeee";
               boundingBox.Class = classLabels_[i];
+              if (boundingBox.Class != "person") {
+                break;
+              }
               boundingBox.probability = rosBoxes_[i][j].prob;
               boundingBox.xmin = xmin;
               boundingBox.ymin = ymin;
               boundingBox.xmax = xmax;
               boundingBox.ymax = ymax;
               boundingBoxesResults_.boundingBoxes.push_back(boundingBox);
-          }
+          // }
         }
       }
     }
@@ -713,20 +715,28 @@ void *YoloObjectDetector::publishInThread()
     outmsg.boxes = boundingBoxesResults_;
     boundingBoxesPublisher_.publish(boundingBoxesResults_);
 
-  if(outmsg.robotId == 1)
+  if(outmsg.robotId == 1) {
+    std::cout << "1";
     compiledMessagePublisher_.publish(outmsg);
-  else if(outmsg.robotId == 2)
+  }
+  else if(outmsg.robotId == 2) {
+    std::cout << "2";
     compiledMessagePublisher2_.publish(outmsg);
-  else if(outmsg.robotId == 3)
+  }
+  else if(outmsg.robotId == 3) {
+    std::cout << "3";
     compiledMessagePublisher3_.publish(outmsg);
-  else if(outmsg.robotId == 4)
+  }
+  else if(outmsg.robotId == 4) {
+    std::cout << "4";
     compiledMessagePublisher4_.publish(outmsg);
+  }
 
 
   } else {
     std_msgs::Int8 msg;
     msg.data = 0;
-    objectPublisher_.publish(msg);
+    // objectPublisher_.publish(msg);
   }
   if (isCheckingForObjects()) {
     ROS_DEBUG("[YoloObjectDetector] check for objects in image.");

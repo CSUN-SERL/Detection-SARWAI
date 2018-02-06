@@ -3,6 +3,11 @@ project(detection_logger)
 
 add_compile_options(-std=c++11)
 
+set(
+  OpenCV_DIR
+  /opt/ros/kinetic/share/OpenCV-3.3.1
+)
+
 ## Find catkin and any catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
