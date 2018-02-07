@@ -32,8 +32,7 @@ YoloObjectDetector::YoloObjectDetector(ros::NodeHandle nh)
       numClasses_(0),
       classLabels_(0),
       rosBoxes_(0),
-      rosBoxCounter_(0),
-      robot_ID(0)
+      rosBoxCounter_(0)
 {
   ROS_INFO("[YoloObjectDetector] Node started.");
 
@@ -142,44 +141,18 @@ void YoloObjectDetector::init()
   bool detectionImageLatch;
 
 
-  std::string camOneTopicName;
-  std::string camTwoTopicName;
-  std::string camThreeTopicName;
-  std::string camFourTopicName;
-
-  int camOneTopicSize;
-  int camTwoTopicSize;
-  int camThreeTopicSize;
-  int camFourTopicSize;
-
   std::string compiledMessageTopicName;
   int compiledMessageTopicSize;
   bool compiledMessageTopicLatch;
 
-  std::string compiledMessageTopicName2;
-  int compiledMessageTopicSize2;
-  bool compiledMessageTopicLatch2;
+  nodeHandle_.param("sarwai/robot_id", this->robot_ID, 0);
 
-  std::string compiledMessageTopicName3;
-  int compiledMessageTopicSize3;
-  bool compiledMessageTopicLatch3;
+  nodeHandle_.param("subscribers/camera_reading/topic", cameraTopicName, std::string("/camera/image_raw"));
+  nodeHandle_.param("subscribers/queue_size", cameraQueueSize, 1);
 
-  std::string compiledMessageTopicName4;
-  int compiledMessageTopicSize4;
-  bool compiledMessageTopicLatch4;  
-
-  nodeHandle_.param("subscribers/robot_one/topic", camOneTopicName, std::string("/robot1/camera/rgb/image_raw"));
-  nodeHandle_.param("subscribers/robot_two/topic", camTwoTopicName, std::string("/robot2/camera/rbg/image_raw"));
-  nodeHandle_.param("subscribers/robot_three/topic", camThreeTopicName, std::string("/robot3/camera/rgb/image_raw"));
-  nodeHandle_.param("subscribers/robot_four/topic", camFourTopicName, std::string("/robot4/camera/rgb/image_raw"));
-
-  nodeHandle_.param("subscribers/robot_one/queue_size", camOneTopicSize, 100);
-  nodeHandle_.param("subscribers/robot_two/queue_size", camTwoTopicSize, 100);
-  nodeHandle_.param("subscribers/robot_three/queue_size", camThreeTopicSize, 100);
-  nodeHandle_.param("subscribers/robot_four/queue_size", camFourTopicSize, 100);
-
-  nodeHandle_.param("subscribers/camera_reading/topic", cameraTopicName, std::string("/camera/image_raw")); /**********************************************/
+  nodeHandle_.param("subscribers/camera_reading/topic", cameraTopicName, std::string("/camera/image_raw"));
   nodeHandle_.param("subscribers/camera_reading/queue_size", cameraQueueSize, 1);
+  
   nodeHandle_.param("publishers/object_detector/topic", objectDetectorTopicName, std::string("found_object"));
   nodeHandle_.param("publishers/object_detector/queue_size", objectDetectorQueueSize, 1);
   nodeHandle_.param("publishers/object_detector/latch", objectDetectorLatch, false);
@@ -190,47 +163,18 @@ void YoloObjectDetector::init()
   nodeHandle_.param("publishers/detection_image/queue_size", detectionImageQueueSize, 1);
   nodeHandle_.param("publishers/detection_image/latch", detectionImageLatch, true);
 
-  nodeHandle_.param("publishers/compiled_message1/topic", compiledMessageTopicName, std::string("/detection/compiled_ros_msg"));
-  nodeHandle_.param("publishers/compiled_message1/queue_size", compiledMessageTopicSize, 1000);
-  nodeHandle_.param("publishers/compiled_message1/latch", compiledMessageTopicLatch, false);
+  nodeHandle_.param("publishers/compiled_message/topic", compiledMessageTopicName, std::string("/detection/compiled_ros_msg"));
+  nodeHandle_.param("publishers/compiled_message/queue_size", compiledMessageTopicSize, 1000);
+  nodeHandle_.param("publishers/compiled_message/latch", compiledMessageTopicLatch, false);
 
-  nodeHandle_.param("publishers/compiled_message2/topic", compiledMessageTopicName2, std::string("/detection/compiled_ros_msg2"));
-  nodeHandle_.param("publishers/compiled_message2/queue_size", compiledMessageTopicSize2, 1000);
-  nodeHandle_.param("publishers/compiled_message2/latch", compiledMessageTopicLatch2, false);
-
-  nodeHandle_.param("publishers/compiled_message3/topic", compiledMessageTopicName3, std::string("/detection/compiled_ros_msg3"));
-  nodeHandle_.param("publishers/compiled_message3/queue_size", compiledMessageTopicSize3, 1000);
-  nodeHandle_.param("publishers/compiled_message3/latch", compiledMessageTopicLatch3, false);
-
-  nodeHandle_.param("publishers/compiled_message4/topic", compiledMessageTopicName4, std::string("/detection/compiled_ros_msg4"));
-  nodeHandle_.param("publishers/compiled_message4/queue_size", compiledMessageTopicSize4, 1000);
-  nodeHandle_.param("publishers/compiled_message4/latch", compiledMessageTopicLatch4, false); 
-
-
-  camOneSubscriber_ = imageTransport_.subscribe(camOneTopicName, camOneTopicSize, &YoloObjectDetector::cameraOneCallback, this);
-  camTwoSubscriber_ = imageTransport_.subscribe(camTwoTopicName, camTwoTopicSize, &YoloObjectDetector::cameraTwoCallback, this);
-  camThreeSubscriber_ = imageTransport_.subscribe(camThreeTopicName, camThreeTopicSize, &YoloObjectDetector::cameraThreeCallback, this);
-  camFourSubscriber_ = imageTransport_.subscribe(camFourTopicName, camFourTopicSize, &YoloObjectDetector::cameraFourCallback, this);
+  imageSubscriber_ = imageTransport_.subscribe(cameraTopicName, cameraQueueSize,
+                                              &YoloObjectDetector::cameraCallback, this);
 
   objectPublisher_ = nodeHandle_.advertise<std_msgs::Int8>(objectDetectorTopicName, objectDetectorQueueSize, objectDetectorLatch);
   boundingBoxesPublisher_ = nodeHandle_.advertise<darknet_ros_msgs::BoundingBoxes>(boundingBoxesTopicName, boundingBoxesQueueSize, boundingBoxesLatch);
   detectionImagePublisher_ = nodeHandle_.advertise<sensor_msgs::Image>(detectionImageTopicName, detectionImageQueueSize, detectionImageLatch);
 
   compiledMessagePublisher_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName, compiledMessageTopicSize, compiledMessageTopicLatch);
-  compiledMessagePublisher2_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName2, compiledMessageTopicSize2, compiledMessageTopicLatch2);
-  compiledMessagePublisher3_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName3, compiledMessageTopicSize3, compiledMessageTopicLatch3);
-  compiledMessagePublisher4_ = nodeHandle_.advertise<detection_msgs::CompiledMessage>(compiledMessageTopicName4, compiledMessageTopicSize4, compiledMessageTopicLatch4);
-
-  // imageSubscriber_ = imageTransport_.subscribe(cameraTopicName, cameraQueueSize,
-  //                                              &YoloObjectDetector::cameraCallback, this);
-  // objectPublisher_ = nodeHandle_.advertise<std_msgs::Int8>(objectDetectorTopicName,
-  //                                                          objectDetectorQueueSize,
-  //                                                          objectDetectorLatch);
-  // boundingBoxesPublisher_ = nodeHandle_.advertise<darknet_ros_msgs::BoundingBoxes>(
-  //     boundingBoxesTopicName, boundingBoxesQueueSize, boundingBoxesLatch);
-  // detectionImagePublisher_ = nodeHandle_.advertise<sensor_msgs::Image>(detectionImageTopicName,
-  //                                                                      detectionImageQueueSize,
-  //                                                                      detectionImageLatch);
 
   // Action servers.
   std::string checkForObjectsActionName;
@@ -245,30 +189,11 @@ void YoloObjectDetector::init()
   checkForObjectsActionServer_->start();
 }
 
-
-void YoloObjectDetector::cameraOneCallback(const sensor_msgs::ImageConstPtr& msg) {
-  YoloObjectDetector::cameraCallback(msg, 1);
-}
-
-void YoloObjectDetector::cameraTwoCallback(const sensor_msgs::ImageConstPtr& msg) {
-  YoloObjectDetector::cameraCallback(msg, 2);
-}
-
-void YoloObjectDetector::cameraThreeCallback(const sensor_msgs::ImageConstPtr& msg) {
-  YoloObjectDetector::cameraCallback(msg, 3);
-}
-
-void YoloObjectDetector::cameraFourCallback(const sensor_msgs::ImageConstPtr& msg) {
-  YoloObjectDetector::cameraCallback(msg, 4);
-}
-
-
-void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg, int robotNum)
+void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   ROS_DEBUG("[YoloObjectDetector] USB image received.");
 
   cv_bridge::CvImagePtr cam_image;
-  this -> robot_ID = robotNum;
 
 
   try {
@@ -345,6 +270,7 @@ bool YoloObjectDetector::publishDetectionImage(const cv::Mat& detectionImage, de
 {
   if (detectionImagePublisher_.getNumSubscribers() < 1)
     return false;
+
   cv_bridge::CvImage cvImage;
   cvImage.header.stamp = ros::Time::now();
   cvImage.header.frame_id = "detection_image";
@@ -715,28 +641,12 @@ void *YoloObjectDetector::publishInThread()
     outmsg.boxes = boundingBoxesResults_;
     boundingBoxesPublisher_.publish(boundingBoxesResults_);
 
-  if(outmsg.robotId == 1) {
-    std::cout << "1";
-    compiledMessagePublisher_.publish(outmsg);
-  }
-  else if(outmsg.robotId == 2) {
-    std::cout << "2";
-    compiledMessagePublisher2_.publish(outmsg);
-  }
-  else if(outmsg.robotId == 3) {
-    std::cout << "3";
-    compiledMessagePublisher3_.publish(outmsg);
-  }
-  else if(outmsg.robotId == 4) {
-    std::cout << "4";
-    compiledMessagePublisher4_.publish(outmsg);
-  }
-
+  compiledMessagePublisher_.publish(outmsg);
 
   } else {
     std_msgs::Int8 msg;
     msg.data = 0;
-    // objectPublisher_.publish(msg);
+    objectPublisher_.publish(msg);
   }
   if (isCheckingForObjects()) {
     ROS_DEBUG("[YoloObjectDetector] check for objects in image.");

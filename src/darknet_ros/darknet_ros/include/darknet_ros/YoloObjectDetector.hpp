@@ -88,40 +88,11 @@ class YoloObjectDetector
 
   int robot_ID;
 
-  //! Publisher of the bounding box image.
+  // Publisher of the bounding box image.
   ros::Publisher detectionImagePublisher_;
-    //! Publisher of the bounding box image.
-  ros::Publisher detectionImagePublisher2_;
-    //! Publisher of the bounding box image.
-  ros::Publisher detectionImagePublisher3_;
-    //! Publisher of the bounding box image.
-  ros::Publisher detectionImagePublisher4_;
-
-
-  ros::Publisher objectPublisher2_;
-  ros::Publisher boundingBoxesPublisher2_;
-  
-  ros::Publisher objectPublisher3_;
-  ros::Publisher boundingBoxesPublisher3_;
-
-  ros::Publisher objectPublisher4_;
-  ros::Publisher boundingBoxesPublisher4_;
-
-
-  image_transport::Subscriber camOneSubscriber_;
-  image_transport::Subscriber camTwoSubscriber_;
-  image_transport::Subscriber camThreeSubscriber_;
-  image_transport::Subscriber camFourSubscriber_;
   ros::Publisher compiledMessagePublisher_;
-  ros::Publisher compiledMessagePublisher2_;
-  ros::Publisher compiledMessagePublisher3_;
-  ros::Publisher compiledMessagePublisher4_;
 
-  //For Camera call back
-  void cameraOneCallback(const sensor_msgs::ImageConstPtr& msg);
-  void cameraTwoCallback(const sensor_msgs::ImageConstPtr& msg);
-  void cameraThreeCallback(const sensor_msgs::ImageConstPtr& msg);
-  void cameraFourCallback(const sensor_msgs::ImageConstPtr& msg);
+
 
   /*!
    * Reads and verifies the ROS parameters.
@@ -138,7 +109,7 @@ class YoloObjectDetector
    * Callback of camera.
    * @param[in] msg image pointer.
    */
-  void cameraCallback(const sensor_msgs::ImageConstPtr& msg, int robotNum);
+  void cameraCallback(const sensor_msgs::ImageConstPtr& msg);
 
   /*!
    * Check for objects action goal callback.
