@@ -96,14 +96,14 @@ void YoloObjectDetector::init()
 
   // Path to weights file.
   nodeHandle_.param("yolo_model/weight_file/name", weightsModel,
-                    std::string("tiny-yolo-voc.weights"));
+                    std::string("yolo-voc.weights"));
   nodeHandle_.param("weights_path", weightsPath, std::string("/default"));
   weightsPath += "/" + weightsModel;
   weights = new char[weightsPath.length() + 1];
   strcpy(weights, weightsPath.c_str());
 
   // Path to config file.
-  nodeHandle_.param("yolo_model/config_file/name", configModel, std::string("tiny-yolo-voc.cfg"));
+  nodeHandle_.param("yolo_model/config_file/name", configModel, std::string("yolo-voc.cfg"));
   nodeHandle_.param("config_path", configPath, std::string("/default"));
   configPath += "/" + configModel;
   cfg = new char[configPath.length() + 1];
@@ -589,11 +589,9 @@ void *YoloObjectDetector::publishInThread()
   cvImage1.encoding = sensor_msgs::image_encodings::BGR8;
   cvImage1.image = cvImage;
   outmsg.image = *cvImage1.toImageMsg();
-  
-    
 
   if (!publishDetectionImage(cv::Mat(cvImage), outmsg)) {
-    ROS_DEBUG("Detection image has not been broadcasted.");
+    ROS_INFO("Detection image has not been broadcasted.");
   }
 
   // Publish bounding boxes and detection result.
@@ -611,7 +609,6 @@ void *YoloObjectDetector::publishInThread()
     std_msgs::Int8 msg;
     msg.data = num;
     objectPublisher_.publish(msg);
-
     for (int i = 0; i < numClasses_; i++) {
       if (rosBoxCounter_[i] > 0) {
         darknet_ros_msgs::BoundingBox boundingBox;
@@ -641,7 +638,7 @@ void *YoloObjectDetector::publishInThread()
     outmsg.boxes = boundingBoxesResults_;
     boundingBoxesPublisher_.publish(boundingBoxesResults_);
 
-  compiledMessagePublisher_.publish(outmsg);
+    compiledMessagePublisher_.publish(outmsg);
 
   } else {
     std_msgs::Int8 msg;
