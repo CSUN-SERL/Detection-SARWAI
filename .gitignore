@@ -67,3 +67,5 @@ src/\.vscode/
 
 #log folders
 log-*/
+
+*.bag
