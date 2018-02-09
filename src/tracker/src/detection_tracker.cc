@@ -38,24 +38,24 @@ int gRobotId = 0;
     Process(robotId, master_image, bounding_boxes);
   }
 
-  void VisualDetectionTracker::DetectionMatchCallback(const detection_msgs::DetectionMatch   &msg) {
-    DetectionFrameId active_detection(msg.activeDetection.id, msg.activeDetection.frameId);
-    DetectionFrameId past_detection(msg.pastDetection.id, msg.pastDetection.frameId);
-    ROS_INFO("%d == %d at confidence: %f", active_detection.DetectionId(),
-        past_detection.DetectionId(), msg.confidence);
-    for (int i = 0; i < active_detections_.size(); i++) {
-      if (active_detections_[i].id->DetectionId() == active_detection.DetectionId()) {
-        // Get box color of previous detection
-        for (int j = 0; j < past_detections_.size(); j++) {
-          if (past_detections_[j].id->DetectionId() == past_detection.DetectionId()) {
-            past_detection.SetBoxColor(past_detections_[j].id->BoxColor());
-            break;
-          }
-        }
-        active_detections_[i].id->SetBoxColor(past_detection.BoxColor());
-      }
-    }
-  }
+  // void VisualDetectionTracker::DetectionMatchCallback(const detection_msgs::DetectionMatch   &msg) {
+  //   DetectionFrameId active_detection(msg.activeDetection.id, msg.activeDetection.frameId);
+  //   DetectionFrameId past_detection(msg.pastDetection.id, msg.pastDetection.frameId);
+  //   ROS_INFO("%d == %d at confidence: %f", active_detection.DetectionId(),
+  //       past_detection.DetectionId(), msg.confidence);
+  //   for (int i = 0; i < active_detections_.size(); i++) {
+  //     if (active_detections_[i].id->DetectionId() == active_detection.DetectionId()) {
+  //       // Get box color of previous detection
+  //       for (int j = 0; j < past_detections_.size(); j++) {
+  //         if (past_detections_[j].id->DetectionId() == past_detection.DetectionId()) {
+  //           past_detection.SetBoxColor(past_detections_[j].id->BoxColor());
+  //           break;
+  //         }
+  //       }
+  //       active_detections_[i].id->SetBoxColor(past_detection.BoxColor());
+  //     }
+  //   }
+  // }
 
   /*
    * Process controls the process of receiving messages on incoming ROS topics
@@ -262,10 +262,10 @@ int gRobotId = 0;
   }
 
   void VisualDetectionTracker::MarkDetectionComplete(int i) {
-    DetectionFrameId* detection_id = active_detections_[i].id;
+    // DetectionFrameId* detection_id = active_detections_[i].id;
     // PropagateToDetectionComparer
     // face_manager_.DeactivateModel(active_detections_[i].id->DetectionId());
-    past_detections_.push_back(active_detections_[i]);
+    // past_detections_.push_back(active_detections_[i]);
     active_detections_.erase(active_detections_.begin() + i);
   }
 
