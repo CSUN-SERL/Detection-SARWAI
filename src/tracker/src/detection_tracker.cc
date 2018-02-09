@@ -33,9 +33,9 @@ int gRobotId = 0;
     sensor_msgs::Image master_image = msg->image;
     unsigned robotId = msg->robotId;
 
-    this->bounding_boxes_matrix_.push(bounding_boxes);
-    this->video_image_frames_.push(master_image);
-    Process(robotId);
+    //this->bounding_boxes_matrix_.push(bounding_boxes);
+    //this->video_image_frames_.push(master_image);
+    Process(robotId, master_image, bounding_boxes);
   }
 
   void VisualDetectionTracker::DetectionMatchCallback(const detection_msgs::DetectionMatch   &msg) {
@@ -61,46 +61,55 @@ int gRobotId = 0;
    * Process controls the process of receiving messages on incoming ROS topics
    * and the publishing of data after running the tracking redundancy detection system
    */
-  void VisualDetectionTracker::Process(int roboId) {
+  void VisualDetectionTracker::Process(int roboId,
+    sensor_msgs::Image video_image_frame,
+    std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes) {
+
     gRobotId = roboId;
-    // This check only lets this function run if there are also elements in the detection flag and bounding box queues
-    if (this->bounding_boxes_matrix_.size() == 0) {
-      // If you aren't ready to process all 3 queues, we have to prune them to make sure they don't get backlogged
-      if (this->video_image_frames_.size() > 0) {
-        this->video_image_frames_.pop();
-      }
+    // // This check only lets this function run if there are also elements in the detection flag and bounding box queues
+    // if (this->bounding_boxes_matrix_.size() == 0) {
+    //   // If you aren't ready to process all 3 queues, we have to prune them to make sure they don't get backlogged
+    //   if (this->video_image_frames_.size() > 0) {
+    //     this->video_image_frames_.pop();
+    //   }
+    // }
+
+    // while (this->video_image_frames_.size() > 0 &&
+    //     this->bounding_boxes_matrix_.size() > 0 ) { //&& this->detection_flag_.size() > 0
+
+    std::vector<cv::Rect2d> detection_bbs;
+    // std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = bounding_boxes_matrix_.front();
+    for (int i = 0; i < bounding_boxes.size(); i++) {
+      darknet_ros_msgs::BoundingBox bb = bounding_boxes.at(i);
+      cv::Rect2d bb_rect(bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin);
+      detection_bbs.push_back(bb_rect);
     }
 
-    while (this->video_image_frames_.size() > 0 &&
-        this->bounding_boxes_matrix_.size() > 0 ) { //&& this->detection_flag_.size() > 0
+    // TrackFrame(
+    //   cv_bridge::toCvCopy(
+    //     video_image_frame,
+    //     sensor_msgs::image_encodings::BGR8)->image,
+    //   detection_bbs, bounding_boxes);
+    darknet_ros_msgs::BoundingBoxes out_going_bb = TrackFrame(
+      cv_bridge::toCvCopy(
+        video_image_frame,
+        sensor_msgs::image_encodings::BGR8)->image,
+      detection_bbs, bounding_boxes
+    );
 
-      std::vector<cv::Rect2d> detection_bbs;
-      std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = bounding_boxes_matrix_.front();
-      for (int i = 0; i < bounding_boxes.size(); i++) {
-        darknet_ros_msgs::BoundingBox bb = bounding_boxes.at(i);
-        cv::Rect2d bb_rect(bb.xmin, bb.ymin, bb.xmax - bb.xmin, bb.ymax - bb.ymin);
-        detection_bbs.push_back(bb_rect);
-      }
+    detection_msgs::CompiledMessage outmsg;
+    // Send data along in the ROS node chain
+    //std_msgs::Int8 msg;
+    //darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
+    outmsg.robotId = roboId;
+    outmsg.boxes = out_going_bb;
+    outmsg.image = video_image_frame;
+    compiled_messages_.publish(outmsg);
 
-      TrackFrame(
-        cv_bridge::toCvCopy(
-          this->video_image_frames_.front(),
-          sensor_msgs::image_encodings::BGR8)->image,
-        detection_bbs, bounding_boxes);
-
-      detection_msgs::CompiledMessage outmsg;
-      // Send data along in the ROS node chain
-      //std_msgs::Int8 msg;
-      //darknet_ros_msgs::BoundingBoxes boundingBoxesResults_;
-      outmsg.robotId = roboId;
-      outmsg.boxes = out_going_bb;
-      outmsg.image = this->video_image_frames_.front();
-      compiled_messages_.publish(outmsg);
-
-      this->out_going_bb.boundingBoxes.clear();
-      this->video_image_frames_.pop();
-      this->bounding_boxes_matrix_.pop();
-    }
+    // this->out_going_bb.boundingBoxes.clear();
+    // this->video_image_frames_.pop();
+    // this->bounding_boxes_matrix_.pop();
+    // }
   }
 
   /*
@@ -115,7 +124,7 @@ int gRobotId = 0;
    * 
    * TODO: Modify TrackFrame to return a vector of bounding boxes to send to logging
    */
-  void VisualDetectionTracker::TrackFrame(const cv::Mat &image_matrix,
+  darknet_ros_msgs::BoundingBoxes VisualDetectionTracker::TrackFrame(const cv::Mat &image_matrix,
         std::vector<cv::Rect2d> detect_bbs,
         std::vector<darknet_ros_msgs::BoundingBox> original_bb) {
 
@@ -154,14 +163,17 @@ int gRobotId = 0;
       }
     }
     std::string imshow_name = "tracking " + std::to_string(gRobotId);
-    AddTrackers(image_matrix, detect_bbs, original_bb);
+    //AddTrackers(image_matrix, detect_bbs, original_bb);
+    darknet_ros_msgs::BoundingBoxes out_going_bb = AddTrackers(image_matrix, detect_bbs, original_bb);
     cv::imshow(imshow_name, image_copy);
+    return out_going_bb;
   }
 
-  void VisualDetectionTracker::AddTrackers(const cv::Mat &image,
+  darknet_ros_msgs::BoundingBoxes VisualDetectionTracker::AddTrackers(const cv::Mat &image,
       std::vector<cv::Rect2d> detection_bbs,
       std::vector<darknet_ros_msgs::BoundingBox> original_bb) {
-
+    
+    darknet_ros_msgs::BoundingBoxes out_going_bb;
     std::vector<cv::Rect2d> active_bbs;
     for (int i = 0; i < active_detections_.size(); i++) {
       active_bbs.push_back(active_detections_[i].bb);
@@ -191,7 +203,8 @@ int gRobotId = 0;
             new_tracker = cv::TrackerGOTURN::create();
             break;
           default:
-            return;
+            darknet_ros_msgs::BoundingBoxes default_boxes;
+            return default_boxes;
         }
 
 
@@ -214,10 +227,12 @@ int gRobotId = 0;
 
         PropagateToDetectionComparer(image, detection.bb, detection.id, false);
         
-        darknet_ros_msgs::BoundingBox temp = original_bb.at(i);
-        this->out_going_bb.boundingBoxes.push_back(temp); //Testing
+        //darknet_ros_msgs::BoundingBox temp = original_bb.at(i);
+        out_going_bb.boundingBoxes.push_back(original_bb.at(i)); //Testing
       }
     }
+
+    return out_going_bb;
   }
 
   void VisualDetectionTracker::PropagateToDetectionComparer(cv::Mat image,
@@ -274,7 +289,7 @@ int gRobotId = 0;
 
     /*  
    * Given two areas A_a, A_b and A_i which is the intersection rect of a and b,
-   * this function returns A_i / (A_a + A_b - 2*A_i) which is a value between 0 to 1.
+   * this function returns A_i / (A_a + A_b - A_i) which is a value between 0 to 1.
    * It will return 0 if there is no intersection between rects a and b
    */
   float VisualDetectionTracker::ComputeFractionOfIntersection(cv::Rect2d a, cv::Rect2d b) {
@@ -284,7 +299,7 @@ int gRobotId = 0;
     float bot_right_y = std::min((a.y + a.height), (b.y + b.height));
     
     // Check and see if the two rects a and b are actually intersecting
-    if (top_left_x >= bot_right_x || top_left_y > bot_right_y) {
+    if (top_left_x >= bot_right_x || top_left_y >= bot_right_y) {
       return 0.0;
     }
 
@@ -292,7 +307,7 @@ int gRobotId = 0;
     
     float intersection_area = ComputeRectArea(intersection);
     
-    float fraction_of_intersection = intersection_area / (ComputeRectArea(a) + ComputeRectArea(b) - 2 * intersection_area);
+    float fraction_of_intersection = intersection_area / (ComputeRectArea(a) + ComputeRectArea(b) - intersection_area);
     return fraction_of_intersection;
   }
 
