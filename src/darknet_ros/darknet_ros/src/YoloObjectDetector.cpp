@@ -335,8 +335,8 @@ void *YoloObjectDetector::detectInThread()
     printf("Objects:\n\n");
   }
   image display = buff_[(buffIndex_ + 2) % 3];
-  draw_detections(display, demoDetections_, demoThresh_, boxes_, probs_, demoNames_, demoAlphabet_,
-                  demoClasses_);
+  // draw_detections(display, demoDetections_, demoThresh_, boxes_, probs_, demoNames_, demoAlphabet_,
+  //                 demoClasses_);
 
   // extract the bounding boxes and send them to ROS
   int total = l.w * l.h * l.n;
@@ -514,7 +514,7 @@ void YoloObjectDetector::yolo()
       cvSetWindowProperty("Demo", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
     } else {
       cvMoveWindow("Demo", 0, 0);
-      cvResizeWindow("Demo", 1352, 1013);
+      cvResizeWindow("Demo", 400, 400);
     }
   }
 
@@ -591,7 +591,7 @@ void *YoloObjectDetector::publishInThread()
   outmsg.image = *cvImage1.toImageMsg();
 
   if (!publishDetectionImage(cv::Mat(cvImage), outmsg)) {
-    ROS_INFO("Detection image has not been broadcasted.");
+    ROS_DEBUG("Detection image has not been broadcasted.");
   }
 
   // Publish bounding boxes and detection result.
@@ -614,22 +614,20 @@ void *YoloObjectDetector::publishInThread()
         darknet_ros_msgs::BoundingBox boundingBox;
 
         for (int j = 0; j < rosBoxCounter_[i]; j++) {
-          // if(classLabels_[j] == "person"){
-              int xmin = (rosBoxes_[i][j].x - rosBoxes_[i][j].w / 2) * frameWidth_;
-              int ymin = (rosBoxes_[i][j].y - rosBoxes_[i][j].h / 2) * frameHeight_;
-              int xmax = (rosBoxes_[i][j].x + rosBoxes_[i][j].w / 2) * frameWidth_;
-              int ymax = (rosBoxes_[i][j].y + rosBoxes_[i][j].h / 2) * frameHeight_;
-              boundingBox.Class = classLabels_[i];
-              if (boundingBox.Class != "person") {
-                break;
-              }
-              boundingBox.probability = rosBoxes_[i][j].prob;
-              boundingBox.xmin = xmin;
-              boundingBox.ymin = ymin;
-              boundingBox.xmax = xmax;
-              boundingBox.ymax = ymax;
-              boundingBoxesResults_.boundingBoxes.push_back(boundingBox);
-          // }
+          int xmin = (rosBoxes_[i][j].x - rosBoxes_[i][j].w / 2) * frameWidth_;
+          int ymin = (rosBoxes_[i][j].y - rosBoxes_[i][j].h / 2) * frameHeight_;
+          int xmax = (rosBoxes_[i][j].x + rosBoxes_[i][j].w / 2) * frameWidth_;
+          int ymax = (rosBoxes_[i][j].y + rosBoxes_[i][j].h / 2) * frameHeight_;
+          boundingBox.Class = classLabels_[i];
+          if (boundingBox.Class != "person") {
+            break;
+          }
+          boundingBox.probability = rosBoxes_[i][j].prob;
+          boundingBox.xmin = xmin;
+          boundingBox.ymin = ymin;
+          boundingBox.xmax = xmax;
+          boundingBox.ymax = ymax;
+          boundingBoxesResults_.boundingBoxes.push_back(boundingBox);
         }
       }
     }
