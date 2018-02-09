@@ -165,7 +165,9 @@ int gRobotId = 0;
     std::string imshow_name = "tracking " + std::to_string(gRobotId);
     //AddTrackers(image_matrix, detect_bbs, original_bb);
     darknet_ros_msgs::BoundingBoxes out_going_bb = AddTrackers(image_matrix, detect_bbs, original_bb);
+    std::cout << "Showing image" << std::endl;
     cv::imshow(imshow_name, image_copy);
+    std::cout << "Done showing" << std::endl;
     return out_going_bb;
   }
 
