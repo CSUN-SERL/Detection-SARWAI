@@ -238,27 +238,27 @@ int gRobotId = 0;
   void VisualDetectionTracker::PropagateToDetectionComparer(cv::Mat image,
       cv::Rect bbox, DetectionFrameId* detection_id, bool detection_concluded) {
     
-    // ROS_INFO("propagating image");
-    detection_msgs::DetectionId ros_detection_id;
-    ros_detection_id.id = detection_id->DetectionId();
-    ros_detection_id.frameId = detection_id->FrameId();
+    // // ROS_INFO("propagating image");
+    // detection_msgs::DetectionId ros_detection_id;
+    // ros_detection_id.id = detection_id->DetectionId();
+    // ros_detection_id.frameId = detection_id->FrameId();
 
-    sensor_msgs::Image image_msg = *(cv_bridge::CvImage(std_msgs::Header(),
-        "bgr8", image).toImageMsg());
+    // sensor_msgs::Image image_msg = *(cv_bridge::CvImage(std_msgs::Header(),
+    //     "bgr8", image).toImageMsg());
 
-    detection_msgs::Rect rect;
-    rect.xpos = bbox.x;
-    rect.ypos = bbox.y;
-    rect.width = bbox.width;
-    rect.height = bbox.height;
+    // detection_msgs::Rect rect;
+    // rect.xpos = bbox.x;
+    // rect.ypos = bbox.y;
+    // rect.width = bbox.width;
+    // rect.height = bbox.height;
 
-    detection_msgs::DetectionIdImage image_id;
-    image_id.isDetectionConcluded = detection_concluded;
-    image_id.regionOfInterest = rect;
-    image_id.detectionId = ros_detection_id;
-    image_id.image = image_msg;
+    // detection_msgs::DetectionIdImage image_id;
+    // image_id.isDetectionConcluded = detection_concluded;
+    // image_id.regionOfInterest = rect;
+    // image_id.detectionId = ros_detection_id;
+    // image_id.image = image_msg;
 
-    detection_id_image_pub_.publish(image_id);
+    // detection_id_image_pub_.publish(image_id);
   }
 
   void VisualDetectionTracker::MarkDetectionComplete(int i) {
