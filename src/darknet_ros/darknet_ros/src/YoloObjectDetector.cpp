@@ -614,14 +614,15 @@ void *YoloObjectDetector::publishInThread()
         darknet_ros_msgs::BoundingBox boundingBox;
 
         for (int j = 0; j < rosBoxCounter_[i]; j++) {
+          if (boundingBox.Class != "person") {
+            continue;
+          }
+          
           int xmin = (rosBoxes_[i][j].x - rosBoxes_[i][j].w / 2) * frameWidth_;
           int ymin = (rosBoxes_[i][j].y - rosBoxes_[i][j].h / 2) * frameHeight_;
           int xmax = (rosBoxes_[i][j].x + rosBoxes_[i][j].w / 2) * frameWidth_;
           int ymax = (rosBoxes_[i][j].y + rosBoxes_[i][j].h / 2) * frameHeight_;
           boundingBox.Class = classLabels_[i];
-          if (boundingBox.Class != "person") {
-            break;
-          }
           boundingBox.probability = rosBoxes_[i][j].prob;
           boundingBox.xmin = xmin;
           boundingBox.ymin = ymin;
