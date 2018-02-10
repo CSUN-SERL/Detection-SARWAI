@@ -49,7 +49,7 @@ namespace sarwai {
     //darknet_ros_msgs::BoundingBoxes out_going_bb;
 
     std::vector<DetectionAggregation> active_detections_;
-    std::vector<DetectionAggregation> past_detections_;
+    // std::vector<DetectionAggregation> past_detections_;
 
     std::vector<cv::Ptr<cv::Tracker> > trackers_;
     std::vector<cv::Rect2d> tracking_boxes_;
@@ -67,7 +67,7 @@ namespace sarwai {
     // std::queue<std::vector<darknet_ros_msgs::BoundingBox>> bounding_boxes_matrix_;  
 
     void ImageCallback(const detection_msgs::CompiledMessageConstPtr& msg);
-    void DetectionMatchCallback(const detection_msgs::DetectionMatch &msg);
+    // void DetectionMatchCallback(const detection_msgs::DetectionMatch &msg);
     void PropagateToDetectionComparer(cv::Mat, cv::Rect, DetectionFrameId*, bool);
     void Process(int RoboId, sensor_msgs::Image video_image_frame, std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes);
     bool CheckIfRectMatchesRectVector(cv::Rect2d, std::vector<cv::Rect2d>);

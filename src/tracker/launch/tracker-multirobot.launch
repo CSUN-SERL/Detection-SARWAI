@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <launch>
-  <machine name="station1" address="station1" user="serl" env-loader="/home/serl/detection/detEnv.bash" />
-  <machine name="station4" address="station4" user="serl" env-loader="/home/serl/detSetup/detEnv.bash" />
-  <machine name="station5" address="station5" user="serl" env-loader="/home/serl/gitdetection/Detection-SARWAI/detEnv.bash" />
+  <!-- <machine name="station1" address="azeroth" user="serl" env-loader="/home/serl/Documents/detection/init-env.bash" /> -->
+  <!-- <machine name="station4" address="azeroth" user="serl" env-loader="/home/serl/Documents/detection/init-env.bash" /> -->
+  <!-- <machine name="azeroth" address="azeroth" user="serl" env-loader="/home/serl/Documents/detection/init-env.bash" /> -->
 
   <node pkg="tracker" type="tracker_node" name="tracker_station_1" output="screen">
-    <param name="topic_name_" value="/detection_compiled_ros_msg3" />
+    <param name="topic_name_" value="/detection_compiled_ros_msg1" />
   </node>
 
   <!-- runs on station 3 -->

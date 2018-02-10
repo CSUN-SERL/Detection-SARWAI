@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <launch>
-  <machine name="station4" address="station4" user="serl" env-loader="/home/serl/detSetup/detEnv.bash" />
+  <machine name="station4" address="station4" user="serl" env-loader="/home/serl/Documents/detection/init-env.bash" />
   <!-- Console launch prefix -->
   <arg name="launch_prefix" default=""/>
 
   <!-- Config and weights folder. -->
-  <arg name="yolo_weights_path"          default="/home/serl/fif/detection-sarwai/src/darknet_ros/darknet_ros/yolo_network_config/weights"/>
-  <arg name="yolo_config_path"           default="/home/serl/fif/detection-sarwai/src/darknet_ros/darknet_ros/yolo_network_config/cfg"/>
+  <arg name="yolo_weights_path"          default="/home/serl/Documents/detection/src/darknet_ros/darknet_ros/yolo_network_config/weights"/>
+  <arg name="yolo_config_path"           default="/home/serl/Documents/detection/src/darknet_ros/darknet_ros/yolo_network_config/cfg"/>
 
   <!-- Load parameters -->
   <rosparam command="load" ns="darknet_ros_robot_4" file="$(find darknet_ros)/config/ros.yaml"/>

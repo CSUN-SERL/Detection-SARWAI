@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <launch>
-  <machine name="station1" address="station1" user="serl" env-loader="/home/serl/detection/detEnv.bash" />
+  <!-- <machine name="station1" address="station1" user="serl" env-loader="/home/serl/detection/detEnv.bash" /> -->
   <!-- Console launch prefix -->
   <arg name="launch_prefix" default=""/>
 
