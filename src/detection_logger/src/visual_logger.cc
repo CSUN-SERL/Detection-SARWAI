@@ -2,6 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <stdlib.h>
+#include <thread>
+#include <chrono>
 
 #include <boost/filesystem.hpp>
 
@@ -18,6 +20,7 @@ namespace sarwai {
   std::string VisualLogger::Log(cv::Mat image, struct VisualDetectionData data) {
     std::string image_filename = SaveImage(image);
     LocalSaveDetectionData(data, image_filename);
+    std::this_thread::sleep_for(std::chrono::seconds(5));
     return image_filename;
   }
 
@@ -27,9 +30,9 @@ namespace sarwai {
     cv::imwrite(full_image_path, image);
     
     // BURN THIS WITH FIRE!!!
-    //std::string command = "scp -i ~/.ssh/hmtec2.pem " + full_image_path + " ubuntu@52.24.126.225:/home/ubuntu/visual-detection-images/";
+    std::string command = "scp -i ~/.ssh/hmtec2.pem " + full_image_path + " ubuntu@52.24.126.225:/home/ubuntu/visual-detection-images/";
 
-    //system(command.c_str());
+    system(command.c_str());
 
     return image_filename;
   }
