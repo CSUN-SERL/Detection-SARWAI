@@ -49,7 +49,7 @@ namespace sarwai {
     //darknet_ros_msgs::BoundingBoxes out_going_bb;
 
     std::vector<DetectionAggregation> active_detections_;
-    //std::vector<DetectionAggregation> past_detections_;
+    // std::vector<DetectionAggregation> past_detections_;
 
     std::vector<cv::Ptr<cv::Tracker> > trackers_;
     std::vector<cv::Rect2d> tracking_boxes_;

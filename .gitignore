@@ -69,3 +69,5 @@ src/\.vscode/
 log-*/
 
 *.bag
+
+*.swp

@@ -32,7 +32,7 @@ namespace sarwai {
   }
 
   void SocketIOAudioLogger::SendData(struct AudioDetectionData data) {
-    std::cout << "Sending audio query via socket.io" << std::endl;
+    std::cout << "#################Sending audio query via socket.io################################" << std::endl;
     std::string json_data = GenerateJSONString(data);
     socket_client_.socket("/socket.io")->emit(audio_detection_event_name_, json_data);
   }

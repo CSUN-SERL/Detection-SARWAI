@@ -21,6 +21,7 @@ namespace sarwai {
 
     private:
     std::string visual_detection_event_name_;
+    std::string query_emit_event_name_;
     std::string host_addr_;
     int port_;
     sio::client socket_client_;

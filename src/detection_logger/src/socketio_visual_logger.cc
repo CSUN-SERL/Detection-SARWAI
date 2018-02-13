@@ -14,6 +14,7 @@ namespace sarwai {
     port_ = port;
 
     visual_detection_event_name_ = "detection-insert-query";
+    query_emit_event_name_ = "irisevaluatequery";
 
     std::string connection_string = host_addr_ + ":" + std::to_string(port_);
     std::cout << connection_string << "\n";
@@ -28,16 +29,14 @@ namespace sarwai {
   }
 
   void SocketIOVisualLogger::Log(std::string image_filename, struct VisualDetectionData data) {
+    std::cout << "#################Sending visual query via socket.io################################" << std::endl;
     SendData(data, image_filename);
   }
 
   void SocketIOVisualLogger::ReceiveQueryId(sio::event &queryIdEvent) {
     int query_id = queryIdEvent.get_message()->get_int();
     std::cout << "received query id: " << query_id << "\n";
-    std::stringstream iris_script_cmd;
-    iris_script_cmd << "python ~/programming/sarwai/adaptation/clustering/evaluate.py " << query_id << " >> visual-iris-log.txt";
-    std::cout << "script path: " << iris_script_cmd.str() << "\n";
-    system(iris_script_cmd.str().c_str());
+    socket_client_.socket("/socket.io")->emit(query_emit_event_name_, std::to_string(query_id));
   }
 
   void SocketIOVisualLogger::SendData(struct VisualDetectionData data, std::string image_filename) {

@@ -19,13 +19,14 @@ int gRobotId = 0;
     //"/detection/compiled_ros_msg"
 
     //topic_name_ can be used in terminal to set parameters of choice
-    this->compiled_msg_ = this->nh_->subscribe(topic_name_ , 100, &VisualDetectionTracker::ImageCallback, this);
+    this->compiled_msg_ = this->nh_->subscribe(topic_name_ , 30, &VisualDetectionTracker::ImageCallback, this);
 
     this->detection_id_image_pub_ = nh_->advertise<detection_msgs::DetectionIdImage>("labeled_detection_images", 100);
 
     this->compiled_messages_ = this->nh_->advertise<detection_msgs::CompiledMessage>("compiled_ros_message", 1000);        
 
-    this->tracking_algorithm_ = TrackingAlgorithm::BOOSTING;
+    // this->tracking_algorithm_ = TrackingAlgorithm::BOOSTING;
+    this->tracking_algorithm_ = TrackingAlgorithm::MIL;
   }
 
   void VisualDetectionTracker::ImageCallback(const detection_msgs::CompiledMessageConstPtr& msg){
@@ -90,6 +91,8 @@ int gRobotId = 0;
     //     video_image_frame,
     //     sensor_msgs::image_encodings::BGR8)->image,
     //   detection_bbs, bounding_boxes);
+
+    
     darknet_ros_msgs::BoundingBoxes out_going_bb = TrackFrame(
       cv_bridge::toCvCopy(
         video_image_frame,
@@ -145,6 +148,16 @@ int gRobotId = 0;
       bool object_tracked = active_detections_[i].tracker->update(image_copy, bb);
 
       if (object_tracked) {
+        ROS_INFO("buffer: %d\n", active_detections_[i].frame_buffer_count);
+        // With a combination of low framerate and fast camera pans, the detection box
+        // and tracking box may become completely disjointed. We expand the tracker box in attempt
+        // to recapture the object
+        // if (!object_tracked) {
+        //   active_detections_[i].frame_buffer_count += 1;
+        // }
+
+        // ROS_INFO("tracker succeeded or buffer count check");
+
         active_detections_[i].id->IncFrame();
         active_detections_[i].bb = bb;
 
@@ -162,6 +175,7 @@ int gRobotId = 0;
         MarkDetectionComplete(i);
       }
     }
+
     std::string imshow_name = "tracking " + std::to_string(gRobotId);
     //AddTrackers(image_matrix, detect_bbs, original_bb);
     darknet_ros_msgs::BoundingBoxes out_going_bb = AddTrackers(image_matrix, detect_bbs, original_bb);
@@ -184,6 +198,7 @@ int gRobotId = 0;
     for (int i = 0; i < detection_bbs.size(); i++) {
       if (!CheckIfRectMatchesRectVector(detection_bbs[i], active_bbs)) {
         // At this point, we can assume that we see a new, unique detection
+        ROS_INFO("adding new tracker");
         cv::Ptr<cv::Tracker> new_tracker;
         switch (this->tracking_algorithm_) {
           case TrackingAlgorithm::BOOSTING:
@@ -281,7 +296,7 @@ int gRobotId = 0;
   bool VisualDetectionTracker::CheckIfRectMatchesRectVector(cv::Rect2d bb, std::vector<cv::Rect2d> bbs) {
     for (int i = 0; i < bbs.size(); i++) {
       cv::Rect2d vect_bb = bbs.at(i);
-      if (ComputeFractionOfIntersection(bb, vect_bb) > 0.8) {
+      if (ComputeFractionOfIntersection(bb, vect_bb) > 0.6) {
         return true;
       }
     }
@@ -291,7 +306,9 @@ int gRobotId = 0;
 
     /*  
    * Given two areas A_a, A_b and A_i which is the intersection rect of a and b,
-   * this function returns A_i / (A_a + A_b - A_i) which is a value between 0 to 1.
+   * this function returns A_i / (A_a + A_b - 2A_i).
+   * If the 2 factor is removed, the comparison between detection boxes and tracking boxes
+   * will nearly always fail.
    * It will return 0 if there is no intersection between rects a and b
    */
   float VisualDetectionTracker::ComputeFractionOfIntersection(cv::Rect2d a, cv::Rect2d b) {
@@ -309,7 +326,7 @@ int gRobotId = 0;
     
     float intersection_area = ComputeRectArea(intersection);
     
-    float fraction_of_intersection = intersection_area / (ComputeRectArea(a) + ComputeRectArea(b) - intersection_area);
+    float fraction_of_intersection = intersection_area / (ComputeRectArea(a) + ComputeRectArea(b) - 2*intersection_area);
     return fraction_of_intersection;
   }
 

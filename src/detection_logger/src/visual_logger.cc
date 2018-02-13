@@ -2,6 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <stdlib.h>
+#include <thread>
+#include <chrono>
 
 #include <boost/filesystem.hpp>
 
@@ -18,6 +20,7 @@ namespace sarwai {
   std::string VisualLogger::Log(cv::Mat image, struct VisualDetectionData data) {
     std::string image_filename = SaveImage(image);
     LocalSaveDetectionData(data, image_filename);
+    std::this_thread::sleep_for(std::chrono::seconds(5));
     return image_filename;
   }
 
