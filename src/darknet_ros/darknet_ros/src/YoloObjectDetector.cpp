@@ -220,10 +220,10 @@ void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg)
 void YoloObjectDetector::checkForObjectsActionGoalCB()
 {
   ROS_DEBUG("[YoloObjectDetector] Start check for objects action.");
-
   boost::shared_ptr<const darknet_ros_msgs::CheckForObjectsGoal> imageActionPtr =
       checkForObjectsActionServer_->acceptNewGoal();
 
+  sensor_msgs::Image imageAction = imageActionPtr->image;
   cv_bridge::CvImagePtr cam_image;
 
   try {
