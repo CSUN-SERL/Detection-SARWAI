@@ -24,7 +24,7 @@ namespace sarwai {
   }
 
   void SocketIOVisualLogger::Log(cv::Mat image, struct VisualDetectionData data) {
-    std::string image_filename = SaveImage(image);
+    std::string image_filename = SaveImage(image, data.robot_id);
     SendData(data, image_filename);
   }
 

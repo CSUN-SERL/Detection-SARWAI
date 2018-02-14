@@ -20,9 +20,9 @@ namespace sarwai {
     std::string GenerateStringCSV(struct VisualDetectionData data, std::string image_filename);
     
     void LocalSaveDetectionData(struct VisualDetectionData data, std::string saved_image_filename);
-    std::string SaveImage(cv::Mat image);
+    std::string SaveImage(cv::Mat image, int robot_id);
 
-    std::string GenerateImageFilename();
+    std::string GenerateImageFilename(int robot_id);
     std::string GenerateTextLogFilename();
 
     int ImageSuffixIterator();

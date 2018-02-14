@@ -18,14 +18,14 @@ namespace sarwai {
   VisualLogger::VisualLogger() {}
 
   std::string VisualLogger::Log(cv::Mat image, struct VisualDetectionData data) {
-    std::string image_filename = SaveImage(image);
+    std::string image_filename = SaveImage(image, data.robot_id);
     LocalSaveDetectionData(data, image_filename);
     std::this_thread::sleep_for(std::chrono::seconds(5));
     return image_filename;
   }
 
-  std::string VisualLogger::SaveImage(cv::Mat image) {
-    std::string image_filename = GenerateImageFilename();
+  std::string VisualLogger::SaveImage(cv::Mat image, int robot_id) {
+    std::string image_filename = GenerateImageFilename(robot_id);
     std::string full_image_path = log_filepath_ + boost::filesystem::path::preferred_separator + image_filename;
     cv::imwrite(full_image_path, image);
     
@@ -77,8 +77,8 @@ namespace sarwai {
     return csv_line.str();
   }
 
-  std::string VisualLogger::GenerateImageFilename() {
-    std::string image_name = "image-" + std::to_string(ImageSuffixIterator()) + ".png";
+  std::string VisualLogger::GenerateImageFilename(int robot_id) {
+    std::string image_name = "image-robot-" + std::to_string(robot_id) + "-" + std::to_string(ImageSuffixIterator()) + ".png";
     return image_name;
   }
 
