@@ -8,7 +8,7 @@
 
 // yolo object detector
 #include "darknet_ros/YoloObjectDetector.hpp"
-
+#include <iostream>
 // Check for xServer
 #include <X11/Xlib.h>
 
@@ -56,9 +56,9 @@ YoloObjectDetector::~YoloObjectDetector()
 bool YoloObjectDetector::readParameters()
 {
   // Load common parameters.
-  nodeHandle_.param("image_view/enable_opencv", viewImage_, true);
+  nodeHandle_.param("image_view/enable_opencv", viewImage_, false);
   nodeHandle_.param("image_view/wait_key_delay", waitKeyDelay_, 3);
-  nodeHandle_.param("image_view/enable_console_output", enableConsoleOutput_, false);
+  nodeHandle_.param("image_view/enable_console_output", enableConsoleOutput_, true);
 
   // Check if Xserver is running on Linux.
   if (XOpenDisplay(NULL)) {
@@ -192,7 +192,6 @@ void YoloObjectDetector::init()
 void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   ROS_DEBUG("[YoloObjectDetector] USB image received.");
-
   cv_bridge::CvImagePtr cam_image;
 
 
@@ -224,7 +223,6 @@ void YoloObjectDetector::checkForObjectsActionGoalCB()
 
   boost::shared_ptr<const darknet_ros_msgs::CheckForObjectsGoal> imageActionPtr =
       checkForObjectsActionServer_->acceptNewGoal();
-  sensor_msgs::Image imageAction = imageActionPtr->image;
 
   cv_bridge::CvImagePtr cam_image;
 
@@ -336,8 +334,8 @@ void *YoloObjectDetector::detectInThread()
   }
   image display = buff_[(buffIndex_ + 2) % 3];
   //image copy_display = buff_[(buffIndex_ + 2) % 3];
-  // draw_detections(display, demoDetections_, demoThresh_, boxes_, probs_, demoNames_, demoAlphabet_,
-  //                 demoClasses_);
+  draw_detections(display, demoDetections_, demoThresh_, boxes_, probs_, demoNames_, demoAlphabet_,
+                  demoClasses_);
 
   // extract the bounding boxes and send them to ROS
   int total = l.w * l.h * l.n;
@@ -500,8 +498,8 @@ void YoloObjectDetector::yolo()
 
   IplImage* ROS_img = getIplImage();
   buff_[0] = ipl_to_image(ROS_img);
-  buff_[1] = copy_image(buff_[0]);
-  buff_[2] = copy_image(buff_[0]);
+  buff_[1] = ipl_to_image(ROS_img);
+  buff_[2] = ipl_to_image(ROS_img);
   buffLetter_[0] = letterbox_image(buff_[0], net_.w, net_.h);
   buffLetter_[1] = letterbox_image(buff_[0], net_.w, net_.h);
   buffLetter_[2] = letterbox_image(buff_[0], net_.w, net_.h);
@@ -575,13 +573,13 @@ bool YoloObjectDetector::isNodeRunning(void)
 void *YoloObjectDetector::publishInThread()
 {
   detection_msgs::CompiledMessage outmsg;
-
-
-  //message.image = *cvImage.toImageMsg();
   outmsg.robotId = this->robot_ID;
 
   // Publish image.
-  cv::Mat cvImage = cv::cvarrToMat(ipl_);
+  // cv::Mat cvImage = cv::cvarrToMat(ipl_);
+  // Having camImageCopy_ be the publishing image solves a strange issue
+  // caused by running darknet without a GUI, in particular via SSH.
+  cv::Mat cvImage = camImageCopy_;
   cv::Mat clone_image = cvImage;
 
   cv_bridge::CvImage cvImage1;
