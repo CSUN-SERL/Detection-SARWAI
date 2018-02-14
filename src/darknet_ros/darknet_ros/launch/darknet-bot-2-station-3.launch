@@ -18,6 +18,7 @@
     <param name="config_path"           value="$(arg yolo_config_path)" />
     <param name="subscribers/camera_reading/topic" value="/robot2/camera/rgb/image_raw" />
     <param name="publishers/compiled_message/topic" value="/detection_compiled_ros_msg2" />
+    <param name="sarwai/robot_id" value="2" />
   </node>
 
  <!--<node name="republish" type="republish" pkg="image_transport" output="screen" 	args="compressed in:=/front_camera/image_raw raw out:=/camera/image_raw" /> -->
