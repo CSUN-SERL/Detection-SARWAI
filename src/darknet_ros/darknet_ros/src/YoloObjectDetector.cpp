@@ -103,7 +103,7 @@ void YoloObjectDetector::init()
   strcpy(weights, weightsPath.c_str());
 
   // Path to config file.
-  nodeHandle_.param("yolo_model/config_file/name", configModel, std::string("yolo-voc.cfg"));
+  nodeHandle_.param("yolo_model/config_file/name", configModel, std::string("tiny-yolo-voc.cfg"));
   nodeHandle_.param("config_path", configPath, std::string("/default"));
   configPath += "/" + configModel;
   cfg = new char[configPath.length() + 1];
@@ -392,6 +392,24 @@ void *YoloObjectDetector::detectInThread()
   return 0;
 }
 
+void image_into_ipl(image p, IplImage *disp)
+{
+    int x,y,k;
+    if(p.c == 3) rgbgr_image(p);
+
+    char buff[256];
+
+    int step = disp->widthStep;
+
+    for(y = 0; y < p.h; ++y){
+        for(x = 0; x < p.w; ++x){
+            for(k= 0; k < p.c; ++k){
+                disp->imageData[y*step + x*p.c + k] = (unsigned char)(get_pixel(p,x,y,k)*255);
+            }
+        }
+    }
+}
+
 void *YoloObjectDetector::displayInThread(void *ptr)
 {
   show_image_cv(buff_[(buffIndex_ + 1) % 3], "Demo", ipl_);
@@ -534,6 +552,9 @@ void YoloObjectDetector::yolo()
       }
       if (viewImage_) {
         displayInThread(0);
+      } else {
+        // image_into_ipl(buff_[(buffIndex_ + 1) % 3], ipl_);
+        image_into_ipl(buff_[(buffIndex_ + 1) % 3], ipl_);
       }
       publishInThread();
     } else {
@@ -554,6 +575,7 @@ void YoloObjectDetector::yolo()
 IplImage* YoloObjectDetector::getIplImage()
 {
   boost::shared_lock<boost::shared_mutex> lock(mutexImageCallback_);
+  // buffMat_ = camImageCopy_;
   IplImage* ROS_img = new IplImage(camImageCopy_);
   return ROS_img;
 }
@@ -576,10 +598,10 @@ void *YoloObjectDetector::publishInThread()
   outmsg.robotId = this->robot_ID;
 
   // Publish image.
-  // cv::Mat cvImage = cv::cvarrToMat(ipl_);
+  cv::Mat cvImage = cv::cvarrToMat(ipl_);
   // Having camImageCopy_ be the publishing image solves a strange issue
   // caused by running darknet without a GUI, in particular via SSH.
-  cv::Mat cvImage = camImageCopy_;
+  // cv::Mat cvImage = buffMat_;
   cv::Mat clone_image = cvImage;
 
   cv_bridge::CvImage cvImage1;
