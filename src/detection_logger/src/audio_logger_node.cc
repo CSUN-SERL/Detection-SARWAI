@@ -12,7 +12,7 @@ using namespace sarwai;
 void LogAudioDetection(const detection_msgs::AudioDetection::ConstPtr&);
 
 AudioLogger audio_logger("./");
-SocketIOAudioLogger socketio_logger("http://52.24.126.225", 81);
+SocketIOAudioLogger socketio_logger("http://192.168.1.11", 8000);
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "audio_logger");
