@@ -30,7 +30,7 @@ namespace sarwai {
     cv::imwrite(full_image_path, image);
     
     // BURN THIS WITH FIRE!!!
-    std::string command = "scp -i ~/.ssh/hmtec2.pem " + full_image_path + " ubuntu@52.24.126.225:/home/ubuntu/visual-detection-images/";
+    std::string command = "scp " + full_image_path + " station@station5:/home/station/visual-detection-images/";
 
     system(command.c_str());
 
