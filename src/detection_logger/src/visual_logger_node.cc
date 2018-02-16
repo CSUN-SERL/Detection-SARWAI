@@ -15,7 +15,7 @@ using namespace sarwai;
 void LogVisualDetection(const detection_msgs::ProcessedVisualDetection::ConstPtr&);
 
 VisualLogger visual_logger(".");
-SocketIOVisualLogger socketio_logger(".", "http://52.24.126.225", 81);
+SocketIOVisualLogger socketio_logger(".", "http://192.168.1.11", 8000);
 // local
 // SocketIOVisualLogger socketio_logger(".", "http://127.0.0.1", 8000);
 
