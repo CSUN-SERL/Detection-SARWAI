@@ -72,7 +72,9 @@ namespace sarwai {
     void Process(int RoboId, sensor_msgs::Image video_image_frame, std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes);
     bool CheckIfRectMatchesRectVector(cv::Rect2d, std::vector<cv::Rect2d>);
     float ComputeFractionOfIntersection(cv::Rect2d, cv::Rect2d);
+    float ComputeDistance(cv::Rect2d, cv::Rect2d);
     float ComputeRectArea(cv::Rect2d);
+    float getAverageArea(cv::Rect2d, cv::Rect2d);
     void MarkDetectionComplete(int index);
   };
 }
