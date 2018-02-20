@@ -25,8 +25,16 @@ int gRobotId = 0;
 
     this->compiled_messages_ = this->nh_->advertise<detection_msgs::CompiledMessage>("compiled_ros_message", 1000);        
 
-    // this->tracking_algorithm_ = TrackingAlgorithm::BOOSTING;
-    this->tracking_algorithm_ = TrackingAlgorithm::MIL;
+    //this->tracking_algorithm_ = TrackingAlgorithm::BOOSTING;
+    //this->tracking_algorithm_ = TrackingAlgorithm::MIL;
+    this->tracking_algorithm_ = TrackingAlgorithm::MEDIANFLOW;
+  }
+
+
+  VisualDetectionTracker::~VisualDetectionTracker() {
+    for (auto e : detection_ids_) {
+      delete e;
+    }
   }
 
   void VisualDetectionTracker::ImageCallback(const detection_msgs::CompiledMessageConstPtr& msg){
@@ -94,11 +102,8 @@ int gRobotId = 0;
 
     
     darknet_ros_msgs::BoundingBoxes out_going_bb = TrackFrame(
-      cv_bridge::toCvCopy(
-        video_image_frame,
-        sensor_msgs::image_encodings::BGR8)->image,
-      detection_bbs, bounding_boxes
-    );
+      cv_bridge::toCvCopy(video_image_frame,sensor_msgs::image_encodings::BGR8)->image, detection_bbs, bounding_boxes
+      );
 
     detection_msgs::CompiledMessage outmsg;
     // Send data along in the ROS node chain
@@ -134,7 +139,6 @@ int gRobotId = 0;
     cv::Mat image_copy = image_matrix.clone();
     cv::Rect2d bb;
     for (int i = 0; i < this->active_detections_.size(); i++) {
-    
 
       if (!CheckIfRectMatchesRectVector(active_detections_[i].bb, detect_bbs)) {
         // There is no longer a detection box found with this tracking box
@@ -184,6 +188,7 @@ int gRobotId = 0;
     std::cout << "Done showing" << std::endl;
     return out_going_bb;
   }
+
 
   darknet_ros_msgs::BoundingBoxes VisualDetectionTracker::AddTrackers(const cv::Mat &image,
       std::vector<cv::Rect2d> detection_bbs,
@@ -296,13 +301,37 @@ int gRobotId = 0;
   bool VisualDetectionTracker::CheckIfRectMatchesRectVector(cv::Rect2d bb, std::vector<cv::Rect2d> bbs) {
     for (int i = 0; i < bbs.size(); i++) {
       cv::Rect2d vect_bb = bbs.at(i);
-      if (ComputeFractionOfIntersection(bb, vect_bb) > 0.6) {
+      std::cout<<bb.x<<std::endl;
+      if (ComputeDistance(bb, vect_bb) < bb.x) {
         return true;
       }
     }
 
     return false;
   }
+
+
+  float VisualDetectionTracker::ComputeDistance(cv::Rect2d a, cv::Rect2d b) {
+    float center_incoming_x = (a.x + a.width / 2.0);
+    float center_incoming_y = (a.y + a.height / 2.0);
+    float curent_incoming_x = (b.x + b.width / 2.0);
+    float curent_incoming_y = (b.y + b.height / 2.0);
+
+    float distance_x = std::pow(center_incoming_x - curent_incoming_x, 2);
+    float distance_y = std::pow(center_incoming_x - curent_incoming_x, 2);
+    float distance_between_points = sqrt(distance_x + distance_y);
+    
+    return distance_between_points;
+  }
+
+  float VisualDetectionTracker::getAverageArea(cv::Rect2d a, cv::Rect2d b){
+    float getAreaCurent = ((a.x + a.width) - a.x) * ((a.y + a.height) - a.y);
+    float getAreaTracker = ((b.x + b.width) - b.x) * ((b.y + b.height) - b.y);
+
+    return getAreaCurent / getAreaTracker;
+
+  }
+
 
     /*  
    * Given two areas A_a, A_b and A_i which is the intersection rect of a and b,
@@ -311,33 +340,33 @@ int gRobotId = 0;
    * will nearly always fail.
    * It will return 0 if there is no intersection between rects a and b
    */
-  float VisualDetectionTracker::ComputeFractionOfIntersection(cv::Rect2d a, cv::Rect2d b) {
-    float top_left_x = std::max(a.x, b.x);
-    float top_left_y = std::max(a.y, b.y);
-    float bot_right_x = std::min((a.x + a.width), (b.x + b.width));
-    float bot_right_y = std::min((a.y + a.height), (b.y + b.height));
-    
-    // Check and see if the two rects a and b are actually intersecting
-    if (top_left_x >= bot_right_x || top_left_y >= bot_right_y) {
-      return 0.0;
-    }
 
-    cv::Rect2d intersection(top_left_x, top_left_y, bot_right_x - top_left_x, bot_right_y - top_left_y);
+  // float VisualDetectionTracker::ComputeFractionOfIntersection(cv::Rect2d a, cv::Rect2d b) {
+  //   float top_left_x = std::max(a.x, b.x);
+  //   float top_left_y = std::max(a.y, b.y);
+  //   float bot_right_x = std::min((a.x + a.width), (b.x + b.width));
+  //   float bot_right_y = std::min((a.y + a.height), (b.y + b.height));
     
-    float intersection_area = ComputeRectArea(intersection);
+  //   // Check and see if the two rects a and b are actually intersecting
+  //   if (top_left_x >= bot_right_x || top_left_y >= bot_right_y) {
+  //     return 0.0;
+  //   }
+
+  //   cv::Rect2d intersection(top_left_x, top_left_y, bot_right_x - top_left_x, bot_right_y - top_left_y);
     
-    float fraction_of_intersection = intersection_area / (ComputeRectArea(a) + ComputeRectArea(b) - 2*intersection_area);
-    return fraction_of_intersection;
-  }
+  //   float intersection_area = ComputeRectArea(intersection);
+    
+  //   float fraction_of_intersection = intersection_area / (ComputeRectArea(a) + ComputeRectArea(b) - 2*intersection_area);
+  //   return fraction_of_intersection;
+  // }
 
-  float VisualDetectionTracker::ComputeRectArea(cv::Rect2d a) {
-    float area = a.width * a.height;
-    return area;
-  }
 
-  VisualDetectionTracker::~VisualDetectionTracker() {
-    for (auto e : detection_ids_) {
-      delete e;
-    }
-  }
+
+
+  // float VisualDetectionTracker::ComputeRectArea(cv::Rect2d a) {
+  //   float area = a.width * a.height;
+  //   return area;
+  // }
+
+
 }

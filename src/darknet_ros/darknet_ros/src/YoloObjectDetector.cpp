@@ -103,7 +103,7 @@ void YoloObjectDetector::init()
   strcpy(weights, weightsPath.c_str());
 
   // Path to config file.
-  nodeHandle_.param("yolo_model/config_file/name", configModel, std::string("tiny-yolo-voc.cfg"));
+  nodeHandle_.param("yolo_model/config_file/name", configModel, std::string("yolo-voc.cfg"));
   nodeHandle_.param("config_path", configPath, std::string("/default"));
   configPath += "/" + configModel;
   cfg = new char[configPath.length() + 1];
@@ -334,8 +334,8 @@ void *YoloObjectDetector::detectInThread()
   }
   image display = buff_[(buffIndex_ + 2) % 3];
   //image copy_display = buff_[(buffIndex_ + 2) % 3];
-  draw_detections(display, demoDetections_, demoThresh_, boxes_, probs_, demoNames_, demoAlphabet_,
-                  demoClasses_);
+  // draw_detections(display, demoDetections_, demoThresh_, boxes_, probs_, demoNames_, demoAlphabet_,
+  //                 demoClasses_);
 
   // extract the bounding boxes and send them to ROS
   int total = l.w * l.h * l.n;
@@ -635,9 +635,9 @@ void *YoloObjectDetector::publishInThread()
         darknet_ros_msgs::BoundingBox boundingBox;
 
         for (int j = 0; j < rosBoxCounter_[i]; j++) {
-          // if (boundingBox.Class != "person") {
-          //   continue;
-          // }
+          if (classLabels_[i] != "person") {
+            continue;
+          }
 
           int xmin = (rosBoxes_[i][j].x - rosBoxes_[i][j].w / 2) * frameWidth_;
           int ymin = (rosBoxes_[i][j].y - rosBoxes_[i][j].h / 2) * frameHeight_;
@@ -659,7 +659,7 @@ void *YoloObjectDetector::publishInThread()
     boundingBoxesPublisher_.publish(boundingBoxesResults_);
 
     compiledMessagePublisher_.publish(outmsg);
-
+    
   } else {
     std_msgs::Int8 msg;
     msg.data = 0;
