@@ -15,6 +15,8 @@ import math
 global MyHumans
 global init_robot_pose
 
+rospy.init_node('detection_calculation', anonymous=True)
+
 image_arr = []
 
 human_msg_ = Human()
@@ -34,7 +36,6 @@ robot_pos_th = init_robot_pose[str(mission_number_)][str(robot_number_)]['theta'
 
 
 def process():
-  rospy.init_node('detection_calculation_node', anonymous=True)
   pub = rospy.Publisher('sarwai_detection/custom_msgs_info', CompiledMessage, queue_size=1000)
   rospy.Subscriber('robot1/odom', Odometry, Odometry_update)
 
