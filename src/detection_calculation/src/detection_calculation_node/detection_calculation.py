@@ -21,8 +21,8 @@ human_msg_ = Human()
 compiled_msgs_ = CompiledMessage()
 
 #RosLaunch Parameters
-mission_number_ ='mission1' #rospy.get_param('~mission_number')
-robot_number_ ='1' #rospy.get_param('~robot_number#')
+mission_number_ = rospy.get_param('~mission_number')
+robot_number_ = rospy.get_param('~robot_number#')
 
 #Config file dictinary
 MyHumans = yaml.load(open('human.yaml'))
@@ -38,12 +38,10 @@ def process():
   pub = rospy.Publisher('sarwai_detection/custom_msgs_info', CompiledMessage, queue_size=1000)
   rospy.Subscriber('robot1/odom', Odometry, Odometry_update)
 
-
   rospy.spin()
 
 
 def Odometry_update(data):
-	print("ODOMMMMM")
 	#Getting x and z change for robot
 	x = data.pose.pose.position.x
 	z = data.pose.pose.position.z
@@ -72,7 +70,7 @@ def Odometry_update(data):
 	compiled_msgs_.robot = robot_number_
 	compiled_msgs_.fov = init_robot_pose[str(mission_number_)][str(robot_number_)]['fov']
 	pub.publish(compiled_msgs_)
-	
+
 
 #Conversion Function 
 def quaternion_to_euler_angle(w, x, y, z):
@@ -112,7 +110,7 @@ def cartesian_to_polar_angle(x,z):
 
 
 def find(RoboPosX, RoboPosZ, RoboPosTh):
-  for i in range(0,291):
+	for i in range(0,291):
 		human_num = str(i)
 		dist = math.sqrt( (RoboPosX - MyHumans[human_num]['x'])**2 + (RoboPosZ - MyHumans[human_num]['z'])**2)
 		if dist <= 0.5:  #dof
