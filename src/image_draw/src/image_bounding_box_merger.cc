@@ -31,7 +31,7 @@ namespace sarwai {
       //Set image info to custom message detection_msgs::ProcessedVisualDetection
       outgoing_detection_msg.image = image; 
       //Set bounding box info to custom message detection_msgs::ProcessedVisualDetection
-      outgoing_detection_msg.bounding_box = box;
+      //utgoing_detection_msg.bounding_box = box;
       outgoing_detection_msg.robotId = robotId;
       this->visual_detection_pub_.publish(outgoing_detection_msg);  
   }

@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   sensor_msgs
   geometry_msgs
-  new_detection_msgs
+  detection_msgs
 )
 
 catkin_python_setup()
@@ -21,5 +21,5 @@ catkin_package(
   CATKIN_DEPENDS nav_msgs
   CATKIN_DEPENDS sensor_msgs
   CATKIN_DEPENDS geometry_msgs
-  CATKIN_DEPENDS new_detection_msgs
+  CATKIN_DEPENDS detection_msgs
 )
