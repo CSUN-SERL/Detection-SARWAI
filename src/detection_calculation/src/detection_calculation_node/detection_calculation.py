@@ -21,8 +21,8 @@ human_msg_ = Human()
 compiled_msgs_ = CompiledMessage()
 
 #RosLaunch Parameters
-mission_number_ = 'mission1' #rospy.get_param('~mission_number')
-robot_number_ = '1' #rospy.get_param('~robot_number#')
+mission_number_ = rospy.get_param('~mission_number')
+robot_number_ = rospy.get_param('~robot_number#')
 
 #Config file dictinary
 MyHumans = yaml.load(open('human.yaml'))
