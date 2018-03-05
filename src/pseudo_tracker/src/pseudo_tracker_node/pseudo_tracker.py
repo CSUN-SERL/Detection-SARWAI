@@ -5,8 +5,8 @@ from rospy import ROSException
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Pose
-from new_detection_msgs.msg import CompiledMessage
-from new_detection_msgs.msg import Human
+from detection_msgs.msg import CompiledFakeMessage
+from detection_msgs.msg import Human
 import math
 
 human_tracked = {}
@@ -14,8 +14,8 @@ human_tracked = {}
 
 def process():
   rospy.init_node('pseudo_trcker_node', anonymous=True)
-  pub = rospy.Publisher('sarwai_detection/tracker_msgs', CompiledMessage, queue_size=1000)
-  rospy.Subscriber('sarwai_detection/custom_msgs_info', CompiledMessage, getInfo)
+  pub = rospy.Publisher('sarwai_detection/tracker_msgs', CompiledFakeMessage, queue_size=1000)
+  rospy.Subscriber('sarwai_detection/custom_msgs_info', CompiledFakeMessage, getInfo)
 
   rospy.spin()
 
