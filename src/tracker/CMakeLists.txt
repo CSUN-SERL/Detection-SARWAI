@@ -6,7 +6,7 @@ add_compile_options(-std=c++11)
 
 set(
   OpenCV_DIR
-  /usr/local/share/OpenCV/OpenCVConfig.cmake
+  /usr/local/share/OpenCV
 )
 
 find_package(catkin REQUIRED COMPONENTS
