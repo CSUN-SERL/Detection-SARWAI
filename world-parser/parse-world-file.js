@@ -83,6 +83,14 @@ function getWalls(data) {
     this.subwalls = new Array();
   }
 
+  /**
+   * The experiment's world file has 4 different representations of the Jacaranda building.
+   * All links and their subsequent walls within each Jacaranda is defined with respect to each Jacaranda's base pose coordinates.
+   * 
+   * @param {*} px 
+   * @param {*} py 
+   * @param {*} pz 
+   */
   var Jacaranda = function(px, py, pz) {
     this.px = px;
     this.py = py;
@@ -91,7 +99,7 @@ function getWalls(data) {
     this.links = new Array();
   }
 
-  var returnLinks = new Array();
+  var links = new Array();
 
   var returnJacarandas = new Array();
 
@@ -126,10 +134,10 @@ function getWalls(data) {
           link.subwalls.push(subwall);
         }
         
-        returnLinks.push(link);
+        links.push(link);
       }
 
-      jacaranda.links = returnLinks;
+      jacaranda.links = links;
       returnJacarandas.push(jacaranda);
     }
   }
