@@ -93,6 +93,8 @@ function getWalls(data) {
 
   var returnLinks = new Array();
 
+  var returnJacarandas = new Array();
+
   for (var i = 0; i < data.sdf.world[0].model.length; i++) {
 
     var model = data.sdf.world[0].model[i];
@@ -128,9 +130,11 @@ function getWalls(data) {
       }
 
       jacaranda.links = returnLinks;
-      return jacaranda;
+      returnJacarandas.push(jacaranda);
     }
   }
+
+  return returnJacarandas;
 }
 
 function getPeople(data) {
