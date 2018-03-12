@@ -82,6 +82,15 @@ function getWalls(data) {
     // Array of SubWalls
     this.subwalls = new Array();
   }
+
+  var Jacaranda = function(px, py, pz) {
+    this.px = px;
+    this.py = py;
+    this.pz = pz;
+
+    this.links = new Array();
+  }
+
   var returnLinks = new Array();
 
   for (var i = 0; i < data.sdf.world[0].model.length; i++) {
@@ -92,6 +101,13 @@ function getWalls(data) {
     var prefix = name.substring(0,9) 
 
     if (prefix == 'jacaranda') {
+      var jacPose = model.pose[0]._;
+      var coords = jacPose.split(" ");
+      var jacX = coords[0];
+      var jacY = coords[1];
+      var jacZ = coords[2];
+      var jacaranda = new Jacaranda(jacX, jacY, jacZ);
+
       var links = model.link;
 
       for (var j = 0; j < links.length; j++) {
@@ -111,7 +127,8 @@ function getWalls(data) {
         returnLinks.push(link);
       }
 
-      return returnLinks;
+      jacaranda.links = returnLinks;
+      return jacaranda;
     }
   }
 }
