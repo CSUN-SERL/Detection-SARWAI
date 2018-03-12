@@ -40,7 +40,6 @@ void LogVisualDetection(const detection_msgs::ProcessedVisualDetection::ConstPtr
   data.top_y_coord = msg->bounding_box.ymin;
   data.timestamp = (int) msg->image.header.stamp.sec;
   data.confidence_rating = msg->bounding_box.probability;
-  //data.object_class = msg->bounding_box.Class;
   data.object_class = "Human";
   data.robot_id = msg->robotId;
 

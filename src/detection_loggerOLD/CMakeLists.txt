@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(detection_logger)
+project(detection_loggerOLD)
 
 add_compile_options(-std=c++11)
 
@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   detection_msgs
   cv_bridge
-  #OpenCV REQUIRED
+  OpenCV REQUIRED
   # cv_bridge
   # image_transport
 )
@@ -40,20 +40,20 @@ set(
 )
 
 add_executable(
-  visual_logger_node
+  visual_logger_node_real
   src/visual_logger_node.cc
   ${VISUAL_LOGGER_SOURCES}
 )
 
 target_link_libraries(
-  visual_logger_node
+  visual_logger_node_real
   sioclient
   curl
   ${catkin_LIBRARIES}
 )
 
 add_dependencies(
-  visual_logger_node
+  visual_logger_node_real
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
@@ -67,20 +67,20 @@ set(
 )
 
 add_executable(
-  audio_logger_node
+  audio_logger_node_real
   src/audio_logger_node.cc
   ${AUDIO_LOGGER_SOURCES}
 )
 
 target_link_libraries(
-  audio_logger_node
+  audio_logger_node_real
   sioclient
   curl
   ${catkin_LIBRARIES}
 )
 
 add_dependencies(
-  audio_logger_node
+  audio_logger_node_real
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )

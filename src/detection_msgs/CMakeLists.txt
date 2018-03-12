@@ -20,13 +20,16 @@ find_package(catkin REQUIRED COMPONENTS
  add_message_files(
    FILES
    ProcessedVisualDetection.msg
+   BoundingBox.msg
    DetectionId.msg
    Rect.msg
    DetectionIdImage.msg
    DetectionMatch.msg
    CompiledMessage.msg
+   CompiledFakeMessage.msg
    AudioDetection.msg
    AudioFileReady.msg
+   Human.msg
  )
 
 ## Generate added messages and services with any dependencies listed here
