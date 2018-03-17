@@ -4,6 +4,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <stdlib.h>
 #include <iostream>
+#include <ctime>
 
 namespace sarwai {
 
@@ -19,7 +20,7 @@ int gRobotId = 0;
     //"/detection/compiled_ros_msg"
 
     //topic_name_ can be used in terminal to set parameters of choice
-    this->compiled_msg_ = this->nh_->subscribe(topic_name_ , 30, &VisualDetectionTracker::ImageCallback, this);
+    this->compiled_msg_ = this->nh_->subscribe(topic_name_ ,1 , &VisualDetectionTracker::ImageCallback, this);
 
     this->detection_id_image_pub_ = nh_->advertise<detection_msgs::DetectionIdImage>("labeled_detection_images", 100);
 
@@ -113,7 +114,7 @@ int gRobotId = 0;
     outmsg.boxes = out_going_bb;
     outmsg.image = video_image_frame;
     compiled_messages_.publish(outmsg);
-
+    std::this_thread::sleep_for(std::chrono::seconds(5));
     // this->out_going_bb.boundingBoxes.clear();
     // this->video_image_frames_.pop();
     // this->bounding_boxes_matrix_.pop();

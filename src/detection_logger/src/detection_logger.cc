@@ -1,7 +1,6 @@
 #include "detection_logger.h"
 
 #include <string>
-#include <ctime>
 #include <iostream>
 
 #include <boost/filesystem.hpp>
