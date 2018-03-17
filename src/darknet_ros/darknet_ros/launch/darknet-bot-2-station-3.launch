@@ -13,7 +13,7 @@
   <rosparam command="load" ns="darknet_ros_robot_2" file="$(find darknet_ros)/config/yolo_voc.yaml"/>
 
   <!-- Start darknet and ros wrapper -->
-  <node pkg="darknet_ros" type="darknet_ros" name="darknet_ros_robot_2" output="screen" launch-prefix="$(arg launch_prefix)">
+  <node pkg="darknet_ros" machine="station3" type="darknet_ros" name="darknet_ros_robot_2" output="screen" launch-prefix="$(arg launch_prefix)">
     <param name="weights_path"          value="$(arg yolo_weights_path)" />
     <param name="config_path"           value="$(arg yolo_config_path)" />
     <param name="subscribers/camera_reading/topic" value="/robot2/camera/rgb/image_raw" />
