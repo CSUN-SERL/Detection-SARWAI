@@ -17,9 +17,9 @@ int gRobotId = 0;
     _nh -> getParam("topic_name_", topic_name_);
     
     //"/detection/compiled_ros_msg"
-
+    ROS_INFO("SERL A");
     //topic_name_ can be used in terminal to set parameters of choice
-    this->compiled_msg_ = this->nh_->subscribe(topic_name_ , 30, &VisualDetectionTracker::ImageCallback, this);
+    this->compiled_msg_ = this->nh_->subscribe( "/sarwai_detection/detection_processeddetection", 30, &VisualDetectionTracker::ImageCallback, this); //topic_name_
 
     this->detection_id_image_pub_ = nh_->advertise<detection_msgs::DetectionIdImage>("labeled_detection_images", 100);
 
@@ -41,7 +41,7 @@ int gRobotId = 0;
     std::vector<darknet_ros_msgs::BoundingBox> bounding_boxes = msg->boxes.boundingBoxes;
     sensor_msgs::Image master_image = msg->image;
     unsigned robotId = msg->robotId;
-
+    ROS_INFO("SERL");
     //this->bounding_boxes_matrix_.push(bounding_boxes);
     //this->video_image_frames_.push(master_image);
     Process(robotId, master_image, bounding_boxes);

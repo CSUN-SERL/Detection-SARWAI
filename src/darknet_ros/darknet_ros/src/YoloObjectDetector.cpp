@@ -486,13 +486,14 @@ void YoloObjectDetector::yolo()
 {
   const auto wait_duration = std::chrono::milliseconds(2000);
   while (!getImageStatus()) {
-    printf("Waiting for image.\n");
+    printf("Waiting for image!!!.\n");
     if (!isNodeRunning()) {
+      printf("Got Image!");
       return;
     }
     std::this_thread::sleep_for(wait_duration);
   }
-
+  ;
   std::thread detect_thread;
   std::thread fetch_thread;
 
